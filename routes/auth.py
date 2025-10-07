@@ -30,7 +30,7 @@ async def auth_callback(request: Request):
 
         # Редирект на фронтенд
 
-        return RedirectResponse(settings.ORIGIN_FRONTEND)
+        return RedirectResponse("/home")
     except Exception as e:
         print("Auth error:", e)
         return RedirectResponse(f"{settings.ORIGIN_FRONTEND}?error=auth")

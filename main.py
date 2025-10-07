@@ -9,6 +9,7 @@ from routes.auth import auth_router
 from routes.superadmin import superadmin_router
 from routes.user import user_router
 from routes.wager import router as wager_router
+from routes.home import home_router
 
 
 
@@ -89,6 +90,7 @@ def create_app():
     app.include_router(user_router)
     app.include_router(auth_router)
     app.include_router(superadmin_router)
+    app.include_router(home_router)
 
 
     return app
