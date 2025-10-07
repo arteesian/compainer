@@ -1,0 +1,26 @@
+from fastapi import APIRouter, HTTPException, Depends
+
+from database.schemas import UserResponse, UserFilter, UserRoleUpdate
+from service.auth import require_role
+from service.user_service import UserService
+
+
+superadmin_router = APIRouter(prefix="/api/v1/superadmin/users", tags=["superadmin layer"])
+
+
+@superadmin_router.get("/", response_model=list[UserResponse])
+async def get_users(
+    filters: UserFilter = Depends(),
+    superadmin: dict = Depends(require_role("superadmin"))
+):
+    return await UserService.list_users(filters)
+
+
+@superadmin_router.patch("/role", response_model=dict)
+async def update_user_role(
+    update_data: UserRoleUpdate,
+    superadmin: dict = Depends(require_role("superadmin"))
+):
+    if not await UserService.update_user_role(update_data):
+        raise HTTPException(404, "User not found")
+    return {"status": "updated", "email": update_data.email}
