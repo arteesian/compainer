@@ -66,22 +66,13 @@ def create_app():
             }
         )
 
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[settings.ORIGIN_FRONTEND, settings.ORIGIN_FRONTEND_BACKUP],  # фронтенд
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
     # Сессии
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.SESSION_SECRET_KEY,
         same_site="lax",
         # max_age=30,
-        https_only=False,
+        https_only=True,
     )
 
     # OAuth
