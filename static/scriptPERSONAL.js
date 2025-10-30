@@ -1,5 +1,5 @@
-const API_BASE = "http://127.0.0.1:8100";
-const FRONTEND_URL = "http://127.0.0.1:8100";
+const API_BASE = "http://0.0.0.0:8100";
+const FRONTEND_URL = "http://0.0.0.0:8100";
 
 // --- Roles helpers (single or multiple) ---
 function getRoles(u) {
@@ -89,7 +89,7 @@ async function logout() {
     method: 'POST',
     credentials: 'include'
     });
-    window.location.href = 'http://127.0.0.1:8100/';
+    window.location.href = 'http://0.0.0.0:8100/';
 }
 
 async function openAdmin() {
@@ -131,18 +131,18 @@ function backToProfile() {
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ТАБЛО
 document.getElementById('tablo').addEventListener('click', () => {
-  window.location.href = 'http://127.0.0.1:8100/tablo';
+  window.location.href = 'http://0.0.0.0:8100/tablo';
 });
 
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ОТЫГРЫША БОНУСА
 document.getElementById('bonus-wager').addEventListener('click', () => {
-  window.location.href = 'http://127.0.0.1:8100/wager';
+  window.location.href = 'http://0.0.0.0:8100/wager';
 });
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ОБЩИХ АКЦИЙ
 document.getElementById('general-actions').addEventListener('click', () => {
-  window.location.href = 'http://127.0.0.1:8100/home';
+  window.location.href = 'http://0.0.0.0:8100/home';
 });
 
 document.addEventListener('DOMContentLoaded', async () => {

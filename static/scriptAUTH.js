@@ -1,5 +1,5 @@
-const API_BASE = "http://127.0.0.1:8100";
-const FRONTEND_URL = "http://127.0.0.1:8100";
+const API_BASE = "http://0.0.0.0:8100";
+const FRONTEND_URL = "http://0.0.0.0:8100";
 
 // --- Roles helpers (single or multiple) ---
 function getRoles(u) {
@@ -110,9 +110,9 @@ function backToProfile() {
 document.getElementById('button-to-campeiner').addEventListener('click', () => {
   const role = window.CURRENT_USER;
   if (hasRole(role, "vip")) {
-      window.location.href = 'http://127.0.0.1:8100/vip_home';
+      window.location.href = 'http://0.0.0.0:8100/vip_home';
     } else {
-      window.location.href = 'http://127.0.0.1:8100/home';
+      window.location.href = 'http://0.0.0.0:8100/home';
     }
 });
 

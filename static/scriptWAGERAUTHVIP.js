@@ -1,5 +1,5 @@
-const API_BASE = "http://127.0.0.1:8100";
-const FRONTEND_URL = "http://127.0.0.1:8100";
+const API_BASE = "http://0.0.0.0:8100";
+const FRONTEND_URL = "http://0.0.0.0:8100";
 
 // --- Roles helpers (single or multiple) ---
 function getRoles(u) {
@@ -89,7 +89,7 @@ async function logout() {
     method: 'POST',
     credentials: 'include'
     });
-    window.location.href = 'http://127.0.0.1:8100/';
+    window.location.href = 'http://0.0.0.0:8100/';
 }
 
 async function openAdmin() {
@@ -132,18 +132,18 @@ function backToProfile() {
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ПЕРСОНАЛЬНЫХ АКЦИЙ
 document.getElementById('personal-actions').addEventListener('click', () => {
-  window.location.href = 'http://127.0.0.1:8100/personal';
+  window.location.href = 'http://0.0.0.0:8100/personal';
 });
 
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ VIP TABLO
 document.getElementById('tablo').addEventListener('click', () => {
-  window.location.href = 'http://127.0.0.1:8100/vip_tablo';
+  window.location.href = 'http://0.0.0.0:8100/vip_tablo';
 });
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ОБЩИХ АКЦИЙ
 document.getElementById('general-actions').addEventListener('click', () => {
-  window.location.href = 'http://127.0.0.1:8100/vip_home';
+  window.location.href = 'http://0.0.0.0:8100/vip_home';
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
