@@ -1,5 +1,5 @@
-//const API_BASE = "http://192.168.220.66:8100";
-//const FRONTEND_URL = "http://192.168.220.66:8100";
+//const API_BASE = "";
+//const FRONTEND_URL = "";
 
 // --- Roles helpers (single or multiple) ---
 function getRoles(u) {
@@ -89,7 +89,7 @@ async function logout() {
     method: 'POST',
     credentials: 'include'
     });
-    window.location.href = 'http://192.168.220.66:8100/';
+    window.location.href = '/';
 }
 
 async function openAdmin() {
@@ -130,18 +130,18 @@ function backToProfile() {
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ПЕРСОНАЛЬНЫХ АКЦИЙ
 document.getElementById('personal-actions').addEventListener('click', () => {
-  window.location.href = 'http://192.168.220.66:8100/personal';
+  window.location.href = '/personal';
 });
 
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ОТЫГРЫША БОНУСА
 document.getElementById('bonus-wager').addEventListener('click', () => {
-  window.location.href = 'http://192.168.220.66:8100/wager';
+  window.location.href = '/wager';
 });
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ТАБЛО
 document.getElementById('tablo').addEventListener('click', () => {
-  window.location.href = 'http://192.168.220.66:8100/tablo';
+  window.location.href = '/tablo';
 });
 
 document.addEventListener('DOMContentLoaded', async () => {

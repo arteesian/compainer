@@ -9,7 +9,7 @@ function getRoles(u) {
 function hasRole(u, role) {
   return getRoles(u).includes(String(role).toLowerCase());
 }
-//const API_BASE = "http://192.168.220.66:8100";
+//const API_BASE = "";
 
 const $ = (sel) => document.querySelector(sel);
 const tbody = $("#sa-users-tbody");
@@ -168,7 +168,7 @@ searchInput.addEventListener("input", render);
 })();
 
 ////////////////////////////////////////////////////////////////////////////////////
-//const FRONTEND_URL = "http://192.168.220.66:8100";
+//const FRONTEND_URL = "";
 
 // --- Roles helpers (single or multiple) ---
 function getRoles(u) {
@@ -259,7 +259,7 @@ async function logout() {
     method: 'POST',
     credentials: 'include'
     });
-    window.location.href = 'http://192.168.220.66:8100/';
+    window.location.href = '/';
 }
 
 async function openAdmin() {
@@ -302,7 +302,7 @@ function backToProfile() {
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ПЕРСОНАЛЬНЫХ АКЦИЙ
 document.getElementById('personal-actions').addEventListener('click', () => {
-  window.location.href = 'http://192.168.220.66:8100/personal';
+  window.location.href = '/personal';
 });
 
 
@@ -310,9 +310,9 @@ document.getElementById('personal-actions').addEventListener('click', () => {
 document.getElementById('bonus-wager').addEventListener('click', () => {
   const role = window.CURRENT_USER;
   if (hasRole(role, "vip")) {
-        window.location.href = 'http://192.168.220.66:8100/vip_wager';
+        window.location.href = '/vip_wager';
     } else {
-      window.location.href = 'http://192.168.220.66:8100/wager';
+      window.location.href = '/wager';
     }
 });
 
@@ -320,9 +320,9 @@ document.getElementById('bonus-wager').addEventListener('click', () => {
 document.getElementById('general-actions').addEventListener('click', () => {
   const role = window.CURRENT_USER;
   if (hasRole(role, "vip")) {
-        window.location.href = 'http://192.168.220.66:8100/vip_home';
+        window.location.href = '/vip_home';
     } else {
-      window.location.href = 'http://192.168.220.66:8100/home';
+      window.location.href = '/home';
     }
 });
 
@@ -330,9 +330,9 @@ document.getElementById('general-actions').addEventListener('click', () => {
 document.getElementById('tablo').addEventListener('click', () => {
   const role = window.CURRENT_USER;
   if (hasRole(role, "vip")) {
-        window.location.href = 'http://192.168.220.66:8100/vip_tablo';
+        window.location.href = '/vip_tablo';
     } else {
-      window.location.href = 'http://192.168.220.66:8100/tablo';
+      window.location.href = '/tablo';
     }
 });
 
