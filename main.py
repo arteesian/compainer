@@ -69,7 +69,7 @@ def create_app():
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.SESSION_SECRET_KEY,
-        same_site="lax",
+        same_site="none",
         # max_age=30,
         https_only=True,
     )
