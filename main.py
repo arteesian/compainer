@@ -15,7 +15,6 @@ from routes.auth import auth_router
 from routes.superadmin import superadmin_router
 from routes.user import user_router
 from routes.wager import router as wager_router
-from routes.home import home_router
 from routes.personal import personal_router
 from routes.sorry_bonus import sorry_bonus_router
 from service.auth import get_current_user_optional
