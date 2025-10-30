@@ -9,5 +9,5 @@ services:
       - PYTHONUNBUFFERED=1
     volumes:
       - .:/app
-    command: uvicorn --factory main:create_app --host 0.0.0.0 --port 8100 --reload
+    command: uvicorn --factory main:create_app --host 192.168.220.66 --port 8100 --reload
     restart: unless-stopped
