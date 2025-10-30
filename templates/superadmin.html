@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>SUPА-ADMIN</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/baby_black.png">
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="wrap-super-admin">
+        <div class="container">
+          <div class="navigation-panel">
+            <div class="navigation-buttons">
+              <button id="general-actions">Общие акции</button>
+              <button id="personal-actions">Персональные акции</button>
+              <button id="bonus-wager">Отыгрыш бонуса</button>
+              <button id="tablo">Табло</button>
+              <button class="active-page-super-admin">SUPER-ADMIN</button>
+            </div>
+            <div class="profile-panel">
+              <button class="profile-button-super-admin"><span class="profile-icon"></span></button>
+              <div class="profile-menu hidden" id="profile-menu">
+                <button class="profile-menu-item hidden" id="profile-admin">Администрирование</button>
+                <button class="profile-menu-item" id="profile-logout">Выйти из профиля</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="super-admin-panel">
+            <div class="general-actions-top-bar">
+              <div class="general-actions-top-bar-left-side">
+                <div class="general-actions-top-bar-left-side-title">Управление пользователями</div>
+                <div class="general-actions-top-bar-left-side-search">
+                  <form class="personal-searchbar" action="javascript:void(0);" role="search">
+                    <span class="personal-search-icon" aria-hidden="true"><img src="/static/img/search_icon.png" alt="search-icon"></span>
+                    <input id="sa-search" type="search" placeholder="Поиск по email…" autocomplete="off">
+                  </form>
+                </div>
+                <div id="sa-toast" class="hidden"></div>
+              </div>
+              <div class="general-actions-top-bar-right-side">
+                <label>
+                  <span>Роли:</span>
+                  <select id="sa-role-filter">
+                    <option value="">Все</option>
+                    <option value="user">User</option>
+                    <option value="vip">VIP</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="super-admin-list-body">
+              <div class="sa-table-wrap">
+                <table id="sa-users">
+                  <thead>
+                    <tr>
+                      <th>Email</th>
+                      <th>Роль</th>
+                      <th>VIP</th>
+                      <th>Admin</th>
+                      <th>Действия</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sa-users-tbody">
+                    <tr><td colspan="5">Загрузка…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <script defer src="{{ url_for('static', path='scriptROLEFILTER.js') }}?v=1"></script>
+    <script defer src="{{ url_for('static', path='scriptSUPERADMIN.js') }}?v=12"></script>
+    
+  </body>
+</html>

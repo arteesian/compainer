@@ -36,8 +36,11 @@ class UserWagerService:
     def get_rules_and_url(wager_data: dict):
         rules = wager_data["response"]["rules"][-1]["object"]["params"]["object"].get("fullDescription", {}).get("uni",None)
         url = wager_data["response"]["rules"][-1]["object"]["params"]["object"].get("rulesUrl", {}).get("uni", None)
-        if "www.pari.ru" not in url:
-            url = f"www.pari.ru/pages/{url}"
+        if url is not None:
+            if "www.pari.ru" not in url:
+                url = f"www.pari.ru/pages/{url}"
+        else:
+            url = None
         return rules, url
 
 
@@ -49,7 +52,6 @@ class UserWagerService:
             api_response = await self.api_client.find_wager_url_rules_name(
                 user_id=user_id
             )
-
             extended_bonuses = []
 
             for bonus in bonuses:
@@ -70,7 +72,7 @@ class UserWagerService:
 
 
             return CombinedUserResponse(
-                user_id=user_id,
+                client_id=user_id,
                 actions=extended_bonuses
             )
 
@@ -81,7 +83,3 @@ class UserWagerService:
             )
 
             raise
-
-
-
-

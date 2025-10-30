@@ -9,7 +9,7 @@ class UserRepository:
 
 
     @staticmethod
-    async def get_or_create_user(email: str) -> Dict[str, str]:
+    async def get_or_create_user(email: str) -> Dict[str, list[str]]:
         async with AsyncSessionLocal() as session:
             try:
                 result = await session.execute(select(User).where(User.email == email))
@@ -50,6 +50,7 @@ class UserRepository:
                 print(f"SQLALCH Error: {e}")
                 await session.rollback()
                 return False
+
 
     @staticmethod
     async def get_all_users(role_filter: Optional[str] = None) -> list[User]:

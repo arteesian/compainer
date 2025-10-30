@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>VIP-Отыгрыш бонуса</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/baby_black.png">
+    <script>window.CURRENT_USER = { role: "{{ role|e }}" };</script>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="vip-background">
+        <div class="container">
+          <div class="navigation-panel">
+            <div class="navigation-buttons">
+              <button class="general-actions" id="general-actions">Общие акции</button>
+              <button class="personal-actions" id="personal-actions">Персональные акции</button>
+              <button class="bonus-wager active-page-vip" id="bonus-wager">Отыгрыш бонуса</button>
+              <button class="events-smm">Конкурсы в соцсетях</button>
+              <button class="tablo" id="tablo">Табло</button>
+            </div>
+            <div class="profile-panel">
+              <button class="profile-button-vip"><span class="profile-icon-vip"></span></button>
+              <div class="profile-menu hidden" id="profile-menu">
+                <button class="profile-menu-item hidden" id="profile-admin">Администрирование</button>
+                <button class="profile-menu-item" id="profile-logout">Выйти из профиля</button>
+              </div>
+              <button id="btn-superadmin" class="hidden">SUPER-ADMIN</button>
+            </div>
+          </div>
+        </div>
+        <div class="wager-body">
+          <div class="wager-window-id-client">
+            <div class="wager-window-id-client-body">
+              <div class="wager-window-id-client-title-vip">Отыгрыш бонуса</div>
+              <div class="wager-window-id-client-input">
+                <span>ID клиента</span>
+                <input type="text" placeholder="12345678">
+              </div>
+              <div class="wager-window-id-client-button"><button class="button-wager-vip">Проверить</button></div>
+            </div>
+          </div>
+          <div class="wager-window-wager-info">
+            <div class="wager-window-wager-info-body">
+              <div class="wager-info-body-response"></div>
+              <button class="wager-info-body-button-copy-vip hidden">Скопировать</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script defer src="{{ url_for('static', path='scriptWAGERAUTHVIP.js') }}?v=12"></script>
+    <script defer src="{{ url_for('static', path='scriptWAGERVIP.js') }}?v=1"></script>
+  </body>
+</html>

@@ -9,6 +9,8 @@ from tenacity import (
     retry_if_exception,
     before_sleep_log
 )
+
+from constants import NO_CLIENT_ID_IN_BO
 from service.exceptions import ExternalAPIError
 
 logger = logging.getLogger(__name__)
@@ -53,8 +55,36 @@ class SecureAPIClient:
                 return SecureAPIClient.FSID_TOKEN
 
         except Exception as e:
-            logger.error(f"Ошибка получения токена: {e}")
+            logger.error(f"Ошибка получения fsid: {e}")
             raise ExternalAPIError(f"Fsid acquisition failed: {str(e)}", 500)
+
+
+    async def _send_freebet_request(self, client_id: str, email: str) -> dict[str, str]:
+        logger.info("Запрос на отправку фрибета")
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"https://pari-ud-api.pbcorp.ru/ServiceAPI/hs/OATS/WantFreeBet",
+                    json={
+                        "clientId": client_id,
+                        "email": email
+                         }
+
+                )
+
+                if response.status_code != 200:
+                    raise ExternalAPIError(
+                        f"Failed to send freebet: {response.status_code} {response.text}",
+                        response.status_code
+                    )
+
+                freebet_data = response.json()
+
+                return freebet_data
+
+        except Exception as e:
+            logger.error(f"Ошибка начисления фрибета: {e}")
+            raise ExternalAPIError(f"Freebet acquisition failed: {str(e)}", 500)
 
 
     def _is_token_expired(self, response_json: Dict[str, Any]) -> bool:
@@ -63,6 +93,7 @@ class SecureAPIClient:
         SESSION_DROPPED_2 = {'kind': 'error', 'response': {'errorCode': 7, 'errorText': 'SessionNotFound'}}
 
         return response_json == SESSION_DROPPED_1 or response_json == SESSION_DROPPED_2
+
 
     @retry(
         retry=(
@@ -117,7 +148,10 @@ class SecureAPIClient:
 
                 if response.status_code == 200:
                     if response_json["kind"] == "error":
-                        raise ExternalAPIError(message=f"Ошибка запроса {self.base_url}{endpoint} с БО, ответ: {response_json}", status_code=400)
+                        if response_json == NO_CLIENT_ID_IN_BO:
+                            raise ExternalAPIError(message=f"Введенный игровой счет отсутствует в БО", status_code=400)
+                        else:
+                            raise ExternalAPIError(message=f"Ошибка запроса {self.base_url}{endpoint} с БО, ответ: {response_json}", status_code=400)
                     return response_json
 
 
@@ -133,6 +167,7 @@ class SecureAPIClient:
             if not isinstance(e, (TokenExpiredError, ExternalAPIError)):
                 raise ExternalAPIError(f"Unexpected error: {str(e)}", 500)
             raise
+
 
     async def find_wager_url_rules_name(
             self,
@@ -150,6 +185,59 @@ class SecureAPIClient:
         logger.info(f"Расчёт бонус-wager-info для user_id={user_id}")
         return await self._make_request_with_token(
             endpoint="/api/bonus/getClientBonusesByVersion",
+            method="post",
+            base_payload=base_payload
+        )
+
+
+    async def get_free_bet_list(self, client_id: str) -> Dict[str, Any]:
+
+        base_payload = {
+                "clientId": client_id,
+                "login": "csat",
+                "userId": "9776",
+                "userLang": "ru"
+            }
+
+        logger.info(f"Расчёт freebet_list для user_id={client_id}")
+        return await self._make_request_with_token(
+            endpoint="/api/backoffice/freebets/getFreebetList",
+            method="post",
+            base_payload=base_payload
+        )
+
+
+    async def get_deposits_plus_withdrawals(self, client_id):
+
+        base_payload = {
+            "clientId": client_id,
+            "maxCount": 200,
+            "scopeId": "23",
+            "login": "csat",
+            "userId": "9776",
+            "userLang": "ru"
+        }
+
+        logger.info(f"Расчёт freebet_list для user_id={client_id}")
+        return await self._make_request_with_token(
+            endpoint="/api/paygate/client/lastTransactions",
+            method="post",
+            base_payload=base_payload
+        )
+
+
+    async def get_client_information(self,
+                                     client_id: str) -> Dict[str, Any]:
+        base_payload = {
+            "login": "csat",
+            "userId": "9776",
+            "userLang": "ru",
+            "clientId": client_id
+        }
+
+        logger.info(f"Расчёт бонус-wager-info для user_id={client_id}")
+        return await self._make_request_with_token(
+            endpoint="/api/backoffice/client/information",
             method="post",
             base_payload=base_payload
         )

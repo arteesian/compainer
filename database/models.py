@@ -1,5 +1,9 @@
-from sqlalchemy import DateTime, BigInteger, String, Column, Integer
-from sqlalchemy.orm import DeclarativeBase
+from datetime import datetime
+from enum import Enum
+from typing import Optional, List
+
+from sqlalchemy import DateTime, BigInteger, String, Column, Integer, ForeignKey, Enum as SQLEnum
+from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import Boolean
 
 
@@ -40,12 +44,65 @@ class User(Base):
     is_superadmin = Column(Boolean, default=False, nullable=False)
 
     @property
-    def role(self):
+    def role(self) -> list[str]:
+        roles = set()
         if self.is_admin:
-            return "admin"
-        elif self.is_superadmin:
-            return "superadmin"
-        elif self.is_vip:
-            return "vip"
-        else:
-            return "user"
+            roles.add("admin")
+        if self.is_superadmin:
+            roles.add("superadmin")
+        if self.is_vip:
+            roles.add("vip")
+        if not roles:
+            roles.add("user")
+        return list(roles)
+
+
+class ActionState(str, Enum):
+    ACTIVE = "active"
+    FINISHED = "finished"
+    INACTIVE = "inactive"
+
+
+class CommonAction(Base):
+    __tablename__ = "common_actions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    short_rules: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    link: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    start_time: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    end_time: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    is_vip: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    answer: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    players: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    state: Mapped[ActionState] = mapped_column(
+        SQLEnum(ActionState, name="action_state_enum"),
+        nullable=False,
+        default=ActionState.ACTIVE
+    )
+
+    questions_answers: Mapped[List["QuestionAnswer"]] = relationship(
+        back_populates="action",
+        cascade="all, delete-orphan",
+        foreign_keys="QuestionAnswer.action_id"
+    )
+
+
+class QuestionAnswer(Base):
+    __tablename__ = "questions_answers"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(
+        ForeignKey("common_actions.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    question: Mapped[str] = mapped_column(String(1000), nullable=False)
+    answer: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    is_approved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    who_sent: Mapped[Optional[str]] = mapped_column(String(254), nullable=True)
+
+    action: Mapped["CommonAction"] = relationship(
+        back_populates="questions_answers",
+        foreign_keys="[QuestionAnswer.action_id]"
+    )

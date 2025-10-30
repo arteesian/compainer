@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
-    <title>Главная</title>
+    <title>VIP-Главная</title>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="/static/img/baby_black.png">
@@ -10,18 +10,18 @@
   </head>
   <body>
     <div class="wrap">
-      <div class="user-background">
+      <div class="vip-background">
         <div class="container">
           <div class="navigation-panel">
             <div class="navigation-buttons">
-              <button class="general-actions active-page">Общие акции</button>
+              <button class="general-actions active-page-vip">Общие акции</button>
               <button class="personal-actions" id="personal-actions">Персональные акции</button>
               <button class="bonus-wager" id="bonus-wager">Отыгрыш бонуса</button>
               <button class="events-smm">Конкурсы в соцсетях</button>
               <button class="tablo" id="tablo">Табло</button>
             </div>
             <div class="profile-panel">
-              <button class="profile-button"><span class="profile-icon"></span></button>
+              <button class="profile-button-vip"><span class="profile-icon-vip"></span></button>
               <div class="profile-menu hidden" id="profile-menu">
                 <button class="profile-menu-item hidden" id="profile-admin">Администрирование</button>
                 <button class="profile-menu-item" id="profile-logout">Выйти из профиля</button>
@@ -91,8 +91,8 @@
         </div>
       </div>
     </div>
-    <script defer src="{{ url_for('static', path='scriptHOME.js') }}?v=12"></script>
-    <script defer src="{{ url_for('static', path='scriptACTIONS.js') }}?v=1"></script>
-    <script defer src="{{ url_for('static', path='scriptGENACTIONSLIST.js') }}?v=13"></script>
+    <script defer src="{{ url_for('static', path='scriptHOMEVIP.js') }}?v=12"></script>
+    <script defer src="{{ url_for('static', path='scriptACTIONSVIP.js') }}?v=1"></script>
+    <script defer src="{{ url_for('static', path='scriptGENACTIONSLISTVIP.js') }}?v=13"></script>
   </body>
 </html>

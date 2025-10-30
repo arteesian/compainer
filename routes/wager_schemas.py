@@ -73,5 +73,5 @@ class UserActionBonusExtended(BaseModel):
         from_attributes = True
 
 class CombinedUserResponse(BaseModel):
-    user_id: str
+    client_id: str
     actions: List[UserActionBonusExtended]

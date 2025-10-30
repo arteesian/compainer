@@ -10,20 +10,18 @@
   </head>
   <body>
     <div class="wrap">
-      <div class="user-background">
+      <div class="admin-background">
         <div class="container">
           <div class="navigation-panel">
             <div class="navigation-buttons">
-              <button class="general-actions active-page">Общие акции</button>
+              <button class="general-actions active-page-admin">Общие акции</button>
               <button class="personal-actions" id="personal-actions">Персональные акции</button>
-              <button class="bonus-wager" id="bonus-wager">Отыгрыш бонуса</button>
-              <button class="events-smm">Конкурсы в соцсетях</button>
-              <button class="tablo" id="tablo">Табло</button>
+              <button class="" id="qa-approving"><img src="/static/img/icon_notif_empty.png" alt="notif"></button>
             </div>
             <div class="profile-panel">
-              <button class="profile-button"><span class="profile-icon"></span></button>
+              <button class="profile-button-admin"><span class="profile-icon"></span></button>
               <div class="profile-menu hidden" id="profile-menu">
-                <button class="profile-menu-item hidden" id="profile-admin">Администрирование</button>
+                <button class="profile-menu-item" id="profile-admin">Выйти из админки</button>
                 <button class="profile-menu-item" id="profile-logout">Выйти из профиля</button>
               </div>
               <button id="btn-superadmin" class="hidden">SUPER-ADMIN</button>
@@ -39,10 +37,16 @@
                     <input id="q" name="q" type="search" placeholder="Найти акцию…" autocomplete="off">
                   </form>
                 </div>
+                 <button type="button" class="ga-add-action" style="margin-left:12px;">+ Добавить акцию</button>
+                <button type="button" class="ga-bulk-delete hidden" style="margin-left:12px;">Удалить акции(-ю)</button>
               </div>
-              <div class="general-actions-top-bar-right-side">1-10 из 14</div>
+              
+              <div class="general-actions-top-bar-right-side"></div>
             </div>
             <div class="general-actions-columns">
+              <div class="ga-col-check">
+                <input type="checkbox" class="ga-master-check" title="Выбрать всё" />
+              </div>
               <div class="general-actions-columns-name">Название</div>
               <div class="general-actions-columns-macros">Ответ клиенту</div>
               <div class="general-actions-columns-time">Сроки проведения</div>
@@ -91,8 +95,8 @@
         </div>
       </div>
     </div>
-    <script defer src="{{ url_for('static', path='scriptHOME.js') }}?v=12"></script>
-    <script defer src="{{ url_for('static', path='scriptACTIONS.js') }}?v=1"></script>
-    <script defer src="{{ url_for('static', path='scriptGENACTIONSLIST.js') }}?v=13"></script>
+    <script defer src="{{ url_for('static', path='scriptHOMEADMIN.js') }}?v=12"></script>
+    <script defer src="{{ url_for('static', path='scriptACTIONSADMIN.js') }}?v=1"></script>
+    <script defer src="{{ url_for('static', path='scriptGENACTIONSLISTADMIN.js') }}?v=13"></script>
   </body>
 </html>

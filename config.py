@@ -1,6 +1,7 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 DOTENV = os.path.join(os.path.dirname(__file__), ".env")
 
 
@@ -15,6 +16,12 @@ class Settings(BaseSettings):
     SESSION_SECRET_KEY: str
     ORIGIN_FRONTEND: str
     ORIGIN_FRONTEND_BACKUP: str
+    ORPO_USER: str
+    ORPO_PASS: str
+    ORPO_HOST: str
+    ORPO_PORT: int
+    ORPO_BD: str
+    TEST_BASE_URL: str
 
     @property
     def DATABASE_URL_asyncpg(self):

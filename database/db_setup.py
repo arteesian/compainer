@@ -1,5 +1,11 @@
 from config import settings
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy import create_engine
+from database.models import Base
+
+# sync_engine = create_engine(
+#     url=settings.DATABASE_URL_psycopg
+# )
 
 engine = create_async_engine(
     url=settings.DATABASE_URL_asyncpg,
@@ -16,5 +22,7 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-# Base.metadata.create_all(engine)
+test_engine = create_async_engine(settings.TEST_BASE_URL, echo=False)
+AsyncTestingSessionLocal = async_sessionmaker(test_engine, expire_on_commit=False)
 
+# Base.metadata.create_all(sync_engine)

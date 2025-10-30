@@ -1,5 +1,6 @@
 from fastapi import Request, HTTPException
 from database.user_repo import UserRepository
+from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,11 +21,18 @@ def get_current_user(request: Request) -> dict:
     return user
 
 
+def get_current_user_optional(request: Request) -> Optional[dict]:
+    """
+    Возвращает словарь пользователя из сессии или None,
+    если пользователь не авторизован. Исключений не бросает.
+    """
+    return request.session.get("user")
+
 def require_role(required_role: str):
 
     def role_checker(request: Request):
         user = get_current_user(request)
-        if user.get("role") != required_role:
+        if required_role not in user.get("role"):
             raise HTTPException(status_code=403, detail=f"{required_role.title()} access required")
         return user
 

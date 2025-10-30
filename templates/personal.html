@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
-    <title>Главная</title>
+    <title>Персональные акции</title>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="/static/img/baby_black.png">
@@ -14,8 +14,8 @@
         <div class="container">
           <div class="navigation-panel">
             <div class="navigation-buttons">
-              <button class="general-actions active-page">Общие акции</button>
-              <button class="personal-actions" id="personal-actions">Персональные акции</button>
+              <button class="general-actions" id="general-actions">Общие акции</button>
+              <button class="personal-actions active-page">Персональные акции</button>
               <button class="bonus-wager" id="bonus-wager">Отыгрыш бонуса</button>
               <button class="events-smm">Конкурсы в соцсетях</button>
               <button class="tablo" id="tablo">Табло</button>
@@ -32,23 +32,23 @@
           <div class="general-actions-panel">
             <div class="general-actions-top-bar">
               <div class="general-actions-top-bar-left-side">
-                <div class="general-actions-top-bar-left-side-title">Общие акции</div>
+                <div class="general-actions-top-bar-left-side-title">Персональные акции</div>
                 <div class="general-actions-top-bar-left-side-search">
-                  <form class="searchbar" action="/search" method="get" role="search">
-                    <span class="search-icon" aria-hidden="true"><img src="/static/img/search_icon.png" alt="search-icon"></span>
-                    <input id="q" name="q" type="search" placeholder="Найти акцию…" autocomplete="off">
+                  <form class="personal-searchbar" action="/search" method="get" role="search">
+                    <span class="personal-search-icon" aria-hidden="true"><img src="/static/img/search_icon.png" alt="search-icon"></span>
+                    <input id="q" name="q" type="search" placeholder="Введите ID клиента и нажмите Enter" autocomplete="off">
                   </form>
                 </div>
+                <div class="personal-actions-bad-client"><button id="personal-actions-bad-client">• Негативный статус</button></div>
               </div>
               <div class="general-actions-top-bar-right-side">1-10 из 14</div>
             </div>
             <div class="general-actions-columns">
-              <div class="general-actions-columns-name">Название</div>
-              <div class="general-actions-columns-macros">Ответ клиенту</div>
+              <div class="general-actions-columns-name">Название акции</div>
+              <div class="general-actions-columns-macros">Макросы</div>
               <div class="general-actions-columns-time">Сроки проведения</div>
-              <div class="general-actions-columns-rules">Краткое описание акции</div>
-              <div class="general-actions-columns-list">Список участников/победителей</div>
-              <div class="general-actions-columns-faq">FAQ</div>
+              <div class="general-actions-columns-rules">Правила</div>
+              <div class="general-actions-columns-list">Краткое описание акции</div>
               <div class="general-actions-columns-status">Статус</div>
             </div>
             <div class="general-actions-table">
@@ -68,6 +68,14 @@
                 <div class="general-actions-table-cell-list"></div>
                 <div class="general-actions-table-cell-status"><button class="general-action-status" id="general-action-status-active">• Активна</button></div>
               </div>
+              <div class="general-actions-table-row">
+                <div class="general-actions-table-cell-name">BOTIK</div>
+                <div class="general-actions-table-cell-macros"><button class="macros"><img src="/static/img/macros_img.png" alt="macros"></button></div>
+                <div class="general-actions-table-cell-time">01.01.2025 - 52.12.2025</div>
+                <div class="general-actions-table-cell-rules"><button class="regular-action-rules">Полные правила</button></div>
+                <div class="general-actions-table-cell-list">Описание</div>
+                <div class="general-actions-table-cell-status"><button class="general-action-status" id="general-action-status-unavailable">• Недоступна</button></div>
+              </div>
             </div>
           </div>
           <div class="general-actions-pagination">
@@ -85,14 +93,13 @@
             </div>
             <div class="general-actions-pagination-arrows">
               <button class="pagination-arrow-left"><img src="/static/img/arrow_left_enable.png" alt="arrow_left"></button>
-              <button class="pagination-arrow-right"><img src="/static/img/arrow_right_enable.png" alt="arrow_right"></button>
+              <button class="pagination-arrow-right"><img src="/static/img/arrow_right_disable.png" alt="arrow_right"></button>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <script defer src="{{ url_for('static', path='scriptHOME.js') }}?v=12"></script>
+    <script defer src="{{ url_for('static', path='scriptPERSONAL.js') }}?v=12"></script>
     <script defer src="{{ url_for('static', path='scriptACTIONS.js') }}?v=1"></script>
-    <script defer src="{{ url_for('static', path='scriptGENACTIONSLIST.js') }}?v=13"></script>
   </body>
 </html>

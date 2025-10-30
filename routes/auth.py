@@ -30,7 +30,12 @@ async def auth_callback(request: Request):
 
         # Редирект на фронтенд
 
-        return RedirectResponse("/home")
+        user = request.session.get("user") or {}
+        roles = user.get("role") or []
+        if isinstance(roles, str):
+            roles = [roles]
+        target = "/vip_home" if "vip" in roles else "/home"
+        return RedirectResponse(target)
     except Exception as e:
         print("Auth error:", e)
         return RedirectResponse(f"{settings.ORIGIN_FRONTEND}?error=auth")
