@@ -26,7 +26,7 @@ def create_app():
     app = FastAPI(title="Pari Compainer",
                   description="Pari Actions in one place",
                   debug=True,
-                  docs_url="/api/docs")
+                  docs_url=None, redoc_url=None, openapi_url=None)
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(
