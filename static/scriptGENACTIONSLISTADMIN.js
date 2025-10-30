@@ -198,7 +198,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
         }
 
         try {
-          const url = `${API_BASE}/api/v1/common_actions/${actionId}/qa/`;
+          const url = `/api/v1/common_actions/${actionId}/qa/`;
           const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -470,7 +470,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
     // читаем актуальный limit с UI
     state.limit = getPageSize();
 
-    const base = `${API_BASE}/api/v1/common_actions`;
+    const base = `/api/v1/common_actions`;
     const url = state.q
       ? `${base}/search?q=${encodeURIComponent(state.q)}&offset=${state.offset}&limit=${state.limit}`
       : `${base}?offset=${state.offset}&limit=${state.limit}`;
@@ -951,7 +951,7 @@ async function openFaqModeration() {
   // backend: GET /api/v1/common_actions/qas/unapproved_qas -> [QuestionAnswerOut]
   let items = [];
   try {
-    const res = await fetch(`${API_BASE}/api/v1/common_actions/qas/unapproved_qas`, { credentials: 'include' });
+    const res = await fetch(`/api/v1/common_actions/qas/unapproved_qas`, { credentials: 'include' });
     if (res.ok) {
       items = await res.json();
     } else {
@@ -971,7 +971,7 @@ async function openFaqModeration() {
   const nameMap = {};
   await Promise.all(uniqActionIds.map(async (id) => {
     try {
-      const r = await fetch(`${API_BASE}/api/v1/common_actions/${id}`, { credentials: 'include' });
+      const r = await fetch(`/api/v1/common_actions/${id}`, { credentials: 'include' });
       if (r.ok) {
         const a = await r.json();
         nameMap[id] = a?.name || `Акция #${id}`;
@@ -1042,14 +1042,14 @@ document.addEventListener('click', async (e) => {
 
     if (act === 'approve') {
       // сначала обновим текст, затем одобрим
-      await fetch(`${API_BASE}/api/v1/common_actions/qa/${qaId}`, {
+      await fetch(`/api/v1/common_actions/qa/${qaId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ question, answer: answer || null })
       });
 
-      const ok = await fetch(`${API_BASE}/api/v1/common_actions/qa/${qaId}/approve`, {
+      const ok = await fetch(`/api/v1/common_actions/qa/${qaId}/approve`, {
         method: 'PATCH',
         credentials: 'include'
       });
@@ -1059,7 +1059,7 @@ document.addEventListener('click', async (e) => {
     }
 
     if (act === 'delete') {
-      const del = await fetch(`${API_BASE}/api/v1/common_actions/qa/${qaId}`, {
+      const del = await fetch(`/api/v1/common_actions/qa/${qaId}`, {
         method: 'DELETE',
         credentials: 'include'
       });

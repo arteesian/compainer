@@ -243,7 +243,7 @@ async function sendRequest() {
           copyBtn.textContent = 'Отправляю...';
 
           try {
-            const res = await fetch(`${API_BASE}/api/v1/acquire_freebet`, {
+            const res = await fetch(`/api/v1/acquire_freebet`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',

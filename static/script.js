@@ -1,5 +1,5 @@
-const API_BASE = "http://192.168.220.66:8100";
-const FRONTEND_URL = "http://192.168.220.66:8100";
+//const API_BASE = "http://192.168.220.66:8100";
+//const FRONTEND_URL = "http://192.168.220.66:8100";
 
 // --- Roles helpers (single or multiple) ---
 function getRoles(u) {
@@ -15,7 +15,7 @@ function hasRole(u, role) {
 // Проверяем, авторизован ли пользователь
 async function checkAuth() {
     try {
-    const res = await fetch(`${API_BASE}/api/me`, {
+    const res = await fetch(`/api/me`, {
         credentials: 'include' // ← отправляем cookie!
     });
     if (res.ok) {
@@ -64,11 +64,11 @@ function showAdmin(data) {
 
 // Действия
 function login() {
-    window.location.href = `${API_BASE}/auth/login/google`;
+    window.location.href = `/auth/login/google`;
 }
 
 async function logout() {
-    await fetch(`${API_BASE}/auth/logout`, {
+    await fetch(`/auth/logout`, {
     method: 'POST',
     credentials: 'include'
     });
@@ -77,7 +77,7 @@ async function logout() {
 
 async function openAdmin() {
     try {
-    const res = await fetch(`${API_BASE}/api/admin`, {
+    const res = await fetch(`/api/admin`, {
         credentials: 'include'
     });
     if (res.ok) {

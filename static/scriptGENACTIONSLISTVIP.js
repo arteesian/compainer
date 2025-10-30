@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-          const url = `${API_BASE}/api/v1/common_actions/${actionId}/qa/`;
+          const url = `/api/v1/common_actions/${actionId}/qa/`;
           const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // читаем актуальный limit с UI
     state.limit = getPageSize();
 
-    const base = `${API_BASE}/api/v1/common_actions`;
+    const base = `/api/v1/common_actions`;
     const url = state.q
       ? `${base}/search?q=${encodeURIComponent(state.q)}&offset=${state.offset}&limit=${state.limit}`
       : `${base}?offset=${state.offset}&limit=${state.limit}`;

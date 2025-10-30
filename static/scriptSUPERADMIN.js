@@ -9,7 +9,7 @@ function getRoles(u) {
 function hasRole(u, role) {
   return getRoles(u).includes(String(role).toLowerCase());
 }
-const API_BASE = "http://192.168.220.66:8100";
+//const API_BASE = "http://192.168.220.66:8100";
 
 const $ = (sel) => document.querySelector(sel);
 const tbody = $("#sa-users-tbody");
@@ -45,7 +45,7 @@ function showToast(msg, ok = true) {
 }
 
 async function ensureSuperadmin() {
-  const r = await fetch(`${API_BASE}/api/me`, { credentials: "include" });
+  const r = await fetch(`/api/me`, { credentials: "include" });
   if (!r.ok) { location.href = "/home"; return false; }
   currentUser = await r.json();
   if (!Array.isArray(currentUser.role) 
@@ -94,7 +94,7 @@ async function fetchUsers() {
   const rf = roleFilter.value;
   if (rf) params.set("role", rf);
   tbody.innerHTML = `<tr><td colspan="5" style="padding:12px;">Загрузка…</td></tr>`;
-  const r = await fetch(`${API_BASE}/api/v1/superadmin/users/?${params.toString()}`, { credentials: "include" });
+  const r = await fetch(`/api/v1/superadmin/users/?${params.toString()}`, { credentials: "include" });
   if (!r.ok) {
     tbody.innerHTML = `<tr><td colspan="5" style="padding:12px;color:crimson;">Ошибка загрузки (${r.status})</td></tr>`;
     return;
@@ -108,7 +108,7 @@ async function patchRole(email, nextVIP, nextADM) {
   if (typeof nextVIP === "boolean") body.is_vip = nextVIP;
   if (typeof nextADM === "boolean") body.is_admin = nextADM;
 
-  const r = await fetch(`${API_BASE}/api/v1/superadmin/users/role`, {
+  const r = await fetch(`/api/v1/superadmin/users/role`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -168,7 +168,7 @@ searchInput.addEventListener("input", render);
 })();
 
 ////////////////////////////////////////////////////////////////////////////////////
-const FRONTEND_URL = "http://192.168.220.66:8100";
+//const FRONTEND_URL = "http://192.168.220.66:8100";
 
 // --- Roles helpers (single or multiple) ---
 function getRoles(u) {
@@ -184,7 +184,7 @@ function hasRole(u, role) {
 // Проверяем, авторизован ли пользователь
 async function checkAuth({ redirectIfUnauthed = true } = {}) {
   try {
-    const res = await fetch(`${API_BASE}/api/me`, { credentials: 'include' });
+    const res = await fetch(`/api/me`, { credentials: 'include' });
     if (res.ok) {
       const user = await res.json();
       window.CURRENT_USER = user; // сохраним для последующего кода
@@ -192,12 +192,12 @@ async function checkAuth({ redirectIfUnauthed = true } = {}) {
       applyProfileInitials({ role: user?.role, roles: user?.roles, email: user?.email });
       return user;
     } else {
-      if (redirectIfUnauthed) window.location.replace(`${FRONTEND_URL}/`);
+      if (redirectIfUnauthed) window.location.replace(`/`);
       return null;
     }
   } catch (e) {
     console.log(e);
-    if (redirectIfUnauthed) window.location.replace(`${FRONTEND_URL}/`);
+    if (redirectIfUnauthed) window.location.replace(`/`);
     return null;
   }
 }
@@ -251,11 +251,11 @@ function showAdmin(data) {
 
 // Действия
 function login() {
-    window.location.href = `${API_BASE}/auth/login/google`;
+    window.location.href = `/auth/login/google`;
 }
 
 async function logout() {
-    await fetch(`${API_BASE}/auth/logout`, {
+    await fetch(`/auth/logout`, {
     method: 'POST',
     credentials: 'include'
     });
@@ -264,7 +264,7 @@ async function logout() {
 
 async function openAdmin() {
     try {
-    const res = await fetch(`${API_BASE}/api/admin`, {
+    const res = await fetch(`/api/admin`, {
         credentials: 'include'
     });
     if (res.ok) {
@@ -274,7 +274,7 @@ async function openAdmin() {
         alert('Нет доступа к админке');
     } else if (res.status === 401) {
         //window.location.reload(); // сессия протухла
-        window.location.replace(`${FRONTEND_URL}/`);
+        window.location.replace(`/`);
     }
     } catch (e) {
     console.error(e);

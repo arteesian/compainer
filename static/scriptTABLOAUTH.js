@@ -1,5 +1,5 @@
-const API_BASE = "http://192.168.220.66:8100";
-const FRONTEND_URL = "http://192.168.220.66:8100";
+//const API_BASE = "http://192.168.220.66:8100";
+//const FRONTEND_URL = "http://192.168.220.66:8100";
 
 // --- Roles helpers (single or multiple) ---
 function getRoles(u) {
@@ -15,7 +15,7 @@ function hasRole(u, role) {
 // Проверяем, авторизован ли пользователь
 async function checkAuth({ redirectIfUnauthed = true } = {}) {
   try {
-    const res = await fetch(`${API_BASE}/api/me`, { credentials: 'include' });
+    const res = await fetch(`/api/me`, { credentials: 'include' });
     if (res.ok) {
       const user = await res.json();
       window.CURRENT_USER = user; // сохраним для последующего кода
@@ -23,12 +23,12 @@ async function checkAuth({ redirectIfUnauthed = true } = {}) {
       applyProfileInitials({ role: user?.role, roles: user?.roles, email: user?.email });
       return user;
     } else {
-      if (redirectIfUnauthed) window.location.replace(`${FRONTEND_URL}/`);
+      if (redirectIfUnauthed) window.location.replace(`/`);
       return null;
     }
   } catch (e) {
     console.log(e);
-    if (redirectIfUnauthed) window.location.replace(`${FRONTEND_URL}/`);
+    if (redirectIfUnauthed) window.location.replace(`/`);
     return null;
   }
 }
@@ -82,11 +82,11 @@ function showAdmin(data) {
 
 // Действия
 function login() {
-    window.location.href = `${API_BASE}/auth/login/google`;
+    window.location.href = `/auth/login/google`;
 }
 
 async function logout() {
-    await fetch(`${API_BASE}/auth/logout`, {
+    await fetch(`/auth/logout`, {
     method: 'POST',
     credentials: 'include'
     });
@@ -95,7 +95,7 @@ async function logout() {
 
 async function openAdmin() {
     try {
-    const res = await fetch(`${API_BASE}/api/admin`, {
+    const res = await fetch(`/api/admin`, {
         credentials: 'include'
     });
     if (res.ok) {
@@ -105,7 +105,7 @@ async function openAdmin() {
         alert('Нет доступа к админке');
     } else if (res.status === 401) {
         //window.location.reload(); // сессия протухла
-        window.location.replace(`${FRONTEND_URL}/`);
+        window.location.replace(`/`);
     }
     } catch (e) {
     console.error(e);
