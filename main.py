@@ -140,7 +140,6 @@ def create_app():
     app.include_router(user_router)
     app.include_router(auth_router)
     app.include_router(superadmin_router)
-    app.include_router(home_router)
     app.include_router(personal_router)
     app.include_router(sorry_bonus_router)
     app.include_router(common_actions_router)
