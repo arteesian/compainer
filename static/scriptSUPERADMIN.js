@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (adminItem) {
     adminItem.addEventListener('click', () => {
       // переходим на страницу администрирования
-      window.location.href = '/admin';
+      window.location.href = '/admin_home';
     });
   }
 
