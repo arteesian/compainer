@@ -34,7 +34,7 @@ class SecureAPIClient:
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    f"http://192.168.220.25/reg_obmen/hs/AuthBO/fsid",
+                    f"https://pari-ud-api.pbcorp.ru/reg_obmen/hs/AuthBO/fsid",
                     json={
                         "auth": "HC6Lty2xqv85KgTYApAV7xXUCPev040y"
                     }
