@@ -160,8 +160,8 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
         return;
       }
 
-      // Отменить — вернуться к списку FAQ из сохранённого JSON
-      const cancelBtn = e.target.closest('.ga-btn-cancel');
+      // Отменить — (ТОЛЬКО внутри формы FAQ) вернуться к списку FAQ
+      const cancelBtn = e.target.closest('.ga-faq-form .ga-btn-cancel');
       if (cancelBtn) {
         const overlay = document.querySelector('.ga-modal-overlay');
         const raw = overlay?.dataset.faqRaw;
@@ -175,6 +175,8 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
         } else {
           closeModal();
         }
+        // важно: не даём другим document-обработчикам отработать на этот клик
+        e.stopImmediatePropagation?.();
         return;
       }
 
@@ -399,7 +401,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
 
       <div class="general-actions-table-cell-name">
         ${a.is_vip ? `<img src="/static/img/icon_vip.png" alt="vip">` : ``}
-        <a class="general-action-link" href="${a.link ? esc(a.link) : '#'}" ${a.link ? `target="_blank" rel="noopener"` : ''}>${a.name.length <= 12 ? esc(a.name) : esc(a.name.slice(0, 17)+'...')}</a>
+        <a class="general-action-link" href="${a.link ? esc(a.link) : '#'}" ${a.link ? `target="_blank" rel="noopener"` : ''} aria-label="${a.name}">${a.name.length <= 17 ? esc(a.name) : esc(a.name.slice(0, 17)+'...')}</a>
       </div>
 
       <div class="general-actions-table-cell-macros">
@@ -669,6 +671,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
   function openEditForm(id) {
     ensureModal(); // есть в файле
     const overlay = document.querySelector('.ga-modal-overlay');
+    delete overlay.dataset.faqRaw;
     const content = overlay.querySelector('.ga-modal-content');
     const copyBtn = overlay.querySelector('.ga-modal-copy-admin');
     copyBtn?.classList.add('hidden'); // кнопка копировать тут не нужна
@@ -742,6 +745,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
   function openCreateForm() {
     ensureModal();
     const overlay = document.querySelector('.ga-modal-overlay');
+    delete overlay.dataset.faqRaw;
     const content = overlay.querySelector('.ga-modal-content');
     const copyBtn = overlay.querySelector('.ga-modal-copy-admin');
     copyBtn?.classList.add('hidden');       // копирование здесь не нужно
@@ -863,7 +867,9 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
 
   // кнопка "Отменить" в форме редактирования
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.ga-btn-cancel')) return;
+    const btn = e.target.closest('.ga-btn-cancel');
+    if (!btn) return;
+    if (btn.closest('.ga-faq-form')) return; // пусть пункт 1 обработает
     const overlay = document.querySelector('.ga-modal-overlay');
     overlay?.classList.add('hidden');
     document.body.classList.remove('ga-modal-lock');

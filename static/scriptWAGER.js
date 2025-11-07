@@ -4,6 +4,7 @@ const btnWAGER   = document.querySelector('.button-wager');
 const out   = document.querySelector('.wager-info-body-response');
 const copy  = document.querySelector('.wager-info-body-button-copy');
 if (copy) copy.classList.add('hidden');
+let lastActions = [];
 
 const escapeHtml = s => String(s ?? '')
 .replaceAll('&','&amp;').replaceAll('<','&lt;')
@@ -27,20 +28,20 @@ if (!Array.isArray(data.actions) || data.actions.length === 0) {
 const items = data.actions.map(a => `
     💬 ${escapeHtml(a.action_name || 'Без названия')}<br>
     <br>
-    🗓️ Начало: ${escapeHtml(a.date_start || '—')}<br>
-    💸 Сумма бонуса: ${escapeHtml(a.bonus_sum || '—')} рублей<br>
+    🗓️ Начало: ${escapeHtml(((d,p=n=>String(n).padStart(2,'0'))=>`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`)(new Date(a.date_start)) || '—')}<br>
+    💸 Сумма бонуса: ${escapeHtml(a.bonus_sum || '0')} рублей<br>
     <br>
-    💯 Сумма отыгрыша: ${escapeHtml(a.payback_sum || '—')} рублей<br>
-    ⏳ Рассчитано ставок: ${escapeHtml(a.calculated_sum || '—')} рублей<br>
-    🔒 Подтверждено ставок: ${escapeHtml(a.accepted_sum || '—')} рублей<br>
+    💯 Сумма отыгрыша: ${escapeHtml(a.payback_sum || '0')} рублей<br>
+    ⏳ Рассчитано ставок: ${escapeHtml(a.calculated_sum || '0')} рублей<br>
+    🔒 Подтверждено ставок: ${escapeHtml(a.accepted_sum || '0')} рублей<br>
     <br>
-    🗓️ Завершение: ${escapeHtml(a.date_end || '—')}<br>
-    ✔️ Осталось отыграть: ${escapeHtml(a.remaining_sum || '—')} рублей<br>
+    🗓️ Завершение: ${escapeHtml(((d,p=n=>String(n).padStart(2,'0'))=>`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`)(new Date(a.date_ending)) || '—')}<br>
+    ✔️ Осталось отыграть: ${escapeHtml(a.remaining_sum || '0')} рублей<br>
     <br>
     ❗️ Статус: ${escapeHtml(a.status || '—')}<br>
     <br>
     📜️ Правила:<br>
-    ${escapeHtml(a.payback_type || '—')}<br>
+    ${escapeHtml(a.rules || '—')}<br>
     <br>
     <br>
     ™️ Ссылка:<br>
@@ -79,7 +80,12 @@ try {
     }
 
     if (res.status === 500) {
-    out.innerHTML = 'ЧТОТА ПАШЛО НЕТАК';
+    out.innerHTML = 'Проблемы на стороне сервера';
+    return;
+    }
+
+    if (res.status === 404) {
+    out.innerHTML = '<div class="error404"><div class="error404-text">У клиента нет бонусного счета</div></div>';
     return;
     }
 
@@ -98,6 +104,7 @@ try {
     }
 
     const data = await res.json();
+    lastActions = Array.isArray(data.actions) ? data.actions : [];
     out.innerHTML = render(data);
     if (copy) copy.classList.remove('hidden');
 } catch (err) {
@@ -112,16 +119,31 @@ try {
 btnWAGER.addEventListener('click', sendRequest);
 inputID.addEventListener('keydown', e => { if (e.key === 'Enter') sendRequest(); });
 
+const fmtDate = s => s ? ((d,p=n=>String(n).padStart(2,'0'))=>`${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`)(new Date(s)) : '—';
+
 if (copy) {
-copy.addEventListener('click', async () => {
+  copy.addEventListener('click', async () => {
     try {
-    await navigator.clipboard.writeText(out.innerText.trim());
-    copy.textContent = 'Скопировано';
-    setTimeout(() => copy.textContent = 'Скопировать', 1200);
+      if (!lastActions.length) {
+        copy.textContent = 'Нет данных';
+        setTimeout(() => (copy.textContent = 'Скопировать'), 1200);
+        return;
+      }
+
+      const text = lastActions.map(a =>
+        `, ${(s=>s?s[0].toLowerCase()+s.slice(1):'—')(a.rules||'—')}\n` +
+        `На данный момент вы отыграли ${escapeHtml(a.calculated_sum || '0')} рублей из ${escapeHtml(a.payback_sum || '0')} рублей. ` +
+        `Вам осталось сделать ставок на общую сумму ${escapeHtml(a.remaining_sum || '0')} рублей до ${escapeHtml(fmtDate(a.date_ending))}.` + `\n\n${a.url ? `С правилами можете ознакомиться по ссылке - ${escapeAttr(a.url)}` : ``}`
+      ).join('\n\n');
+
+      await navigator.clipboard.writeText(text.trim());
+      copy.textContent = 'Скопировано';
+      setTimeout(() => (copy.textContent = 'Скопировать'), 1200);
     } catch {
-    copy.textContent = 'Нет доступа к буферу';
-    setTimeout(() => copy.textContent = 'Скопировать', 1200);
+      copy.textContent = 'Нет доступа к буферу';
+      setTimeout(() => (copy.textContent = 'Скопировать'), 1200);
     }
-});
+  });
 }
+
 

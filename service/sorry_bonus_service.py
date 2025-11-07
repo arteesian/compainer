@@ -277,6 +277,3 @@ class SorryBonusService:
 
     async def ship_freebet(self, client_id: str, email: str) -> dict[str, str]:
         return await self.api_client._send_freebet_request(client_id=client_id, email=email)
-
-
-

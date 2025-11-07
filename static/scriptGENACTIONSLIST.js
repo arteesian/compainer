@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Отменить — вернуться к списку FAQ из сохранённого JSON
-      const cancelBtn = e.target.closest('.ga-btn-cancel');
+      // Отменить — (ТОЛЬКО внутри формы FAQ) вернуться к списку FAQ
+      const cancelBtn = e.target.closest('.ga-faq-form .ga-btn-cancel');
       if (cancelBtn) {
         const overlay = document.querySelector('.ga-modal-overlay');
         const raw = overlay?.dataset.faqRaw;
@@ -140,6 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           closeModal();
         }
+        // важно: не даём другим document-обработчикам отработать на этот клик
+        e.stopImmediatePropagation?.();
         return;
       }
 
@@ -359,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     row.innerHTML = `
       <div class="general-actions-table-cell-name">
-        <a class="general-action-link" href="${a.link ? esc(a.link) : '#'}" ${a.link ? `target="_blank" rel="noopener"` : ''}>${a.name.length <= 15 ? esc(a.name) : esc(a.name.slice(0, 20)+'...')}</a>
+        <a class="general-action-link" href="${a.link ? esc(a.link) : '#'}" ${a.link ? `target="_blank" rel="noopener"` : ''} aria-label="${a.name}">${a.name.length <= 17 ? esc(a.name) : esc(a.name.slice(0, 17)+'...')}</a>
       </div>
       <div class="general-actions-table-cell-macros">
       ${!a.answer 

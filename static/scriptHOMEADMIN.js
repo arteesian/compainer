@@ -129,9 +129,9 @@ function backToProfile() {
 }
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ПЕРСОНАЛЬНЫХ АКЦИЙ
-document.getElementById('personal-actions').addEventListener('click', () => {
-  window.location.href = '/admin_personal';
-});
+// document.getElementById('personal-actions').addEventListener('click', () => {
+//   window.location.href = '/admin_personal';
+// });
 
 
 document.addEventListener('DOMContentLoaded', async () => {

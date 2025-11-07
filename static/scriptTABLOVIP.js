@@ -33,6 +33,20 @@ const EURO_COPY_ALIASES = {
   'доступен евробонус 50000':  ', могу предложить вам бонус до 50 000 рублей!\n\nУсловия участия:\n— Пополните счёт на сумму от 10 000 до 50 000 ₽ в течение 7 дней — и получите бонус 100% от депозита на бонусный счёт.\n— Чтобы перевести бонус на основной счёт, необходимо сделать ставки на любые спортивные события с коэффициентом от 1.5, на сумму, превышающую бонус в 5 раз.\n— Все условия нужно выполнить в течение 7 дней.\n\n🔗 Подробнее: https://pari.ru/pages/eurobonus_10k_50k\n\nХотите принять участие? ',
 };
 
+function normalizeError(details) {
+  if (!details) return 'Неизвестная ошибка';
+  if (typeof details === 'string') return details;
+
+  // Попробуем вытащить текст
+  const msg = details.message || details.detail || details.error || JSON.stringify(details);
+
+  // Сделаем сообщение дружелюбнее для 500/KeyError
+  if (/HTTP\s*500/i.test(msg) || /KeyError/i.test(msg)) {
+    return 'Сервис Евробонус временно недоступен или вернул некорректные данные. Попробуйте позже.';
+  }
+  return String(msg);
+}
+
 function makeCopyTextFromEuro(rawText){
   const norm = String(rawText).toLowerCase().replace(/\s+/g,' ').trim();
   return EURO_COPY_ALIASES[norm] || rawText.trim();
@@ -40,9 +54,9 @@ function makeCopyTextFromEuro(rawText){
 
 // рендер евро-бонуса
 function renderEuro(eb) {
-  if (!eb) return `<div>Нет данных по евробонусу</div>`;
+  if (!eb) return `<div class="no-data-about-euro">Нет данных по евробонусу</div>`;
   if (eb.data === 'error') {
-    return `<div>Ошибка: ${escapeHtml(String(eb.details ?? ''))}</div>`;
+    return `<div>Ошибка: ${escapeHtml(normalizeError(eb.details))}</div>`;
   }
   const hasOffer = (typeof eb.has_offer === 'boolean') ? eb.has_offer : null;
   const answer   = eb.euro_bonus_answer ? String(eb.euro_bonus_answer) : null;
@@ -58,7 +72,7 @@ function renderEuro(eb) {
 function renderSorry(sb) {
   if (!sb) return `<div>Нет данных по сорри-бонусу</div>`;
   if (sb.data === 'error') {
-    return `<div>Ошибка: ${escapeHtml(String(sb.details ?? ''))}</div>`;
+    return `<div>Ошибка: ${escapeHtml(normalizeError(sb.details))}</div>`;
   }
   const d = sb.data || {};
   let html = `<div class="vip-sorry-bonus">`;
@@ -236,9 +250,8 @@ document.getElementById('vip-tablo-accrue')?.addEventListener('click', async () 
       return;
     }
 
-    const res = await fetch('/api/v1/acquire_freebet', {
+    const res = await fetch('https://pari-ud-api.pbcorp.ru/ServiceAPI/hs/OATS/WantFreeBet', {
       method: 'POST',
-      credentials: 'include', 
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ clientId, email }),
     });

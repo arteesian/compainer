@@ -90,6 +90,18 @@ function setupAnswerButtons() {
   btnAnsRight.onclick = () => renderMacro(macroIndex + 1);
 }
 
+function normalizeError(details) {
+  if (!details) return 'Неизвестная ошибка';
+  if (typeof details === 'string') return details;
+
+  const msg = details.message || details.detail || details.error || JSON.stringify(details);
+
+  // Для частого случая 500/KeyError дадим более понятное сообщение
+  if (/HTTP\s*500/i.test(msg) || /KeyError/i.test(msg)) {
+    return 'Сервис Евробонус временно недоступен или вернул некорректные данные. Попробуйте позже.';
+  }
+  return String(msg);
+}
 
 // ---------- helpers ----------
 const escapeHtml = s => String(s ?? '')
@@ -115,7 +127,7 @@ function render(data) {
     html += `<div class="atention-vip-response-part1">
                 <b>Евро-бонус</b><br>`;
     if (eb.data === 'error') {
-        html += `Ошибка: ${escapeHtml(String(eb.details || ''))}<br></div>`;
+        html += `Ошибка: ${escapeHtml(normalizeError(data?.euro_bonus?.details))}`;
     } else {
         if (typeof eb.has_offer === 'boolean') {
             html += `Доступен: ${eb.has_offer ? '✅' : '❌'}<br>`;
@@ -131,7 +143,7 @@ function render(data) {
         const sb = data.sorry_bonus;
         html += `<div class="atention-vip-response-part2"><b>Сорри-бонус</b><br>`;
         if (sb.data === 'error') {
-        html += `Ошибка: ${escapeHtml(String(sb.details || ''))}<br><br>`;
+        html += `Ошибка: ${escapeHtml(normalizeError(data?.sorry_bonus?.details))}`;
         } else if (sb.data) {
         if (sb.data.have_bonus) {
             html += `Доступен: ✅<br>`;

@@ -18,7 +18,7 @@ const roleFilter = $("#sa-role-filter");
 const searchInput = $("#sa-search");
 
 document.getElementById('general-actions').addEventListener('click', () => location.href = '/home');
-document.getElementById('personal-actions').addEventListener('click', () => location.href = '/personal');
+//document.getElementById('personal-actions').addEventListener('click', () => location.href = '/personal');
 document.getElementById('bonus-wager').addEventListener('click', () => location.href = '/wager');
 document.getElementById('tablo').addEventListener('click', () => location.href = '/tablo');
 
@@ -301,9 +301,9 @@ function backToProfile() {
 
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ПЕРСОНАЛЬНЫХ АКЦИЙ
-document.getElementById('personal-actions').addEventListener('click', () => {
-  window.location.href = '/personal';
-});
+// document.getElementById('personal-actions').addEventListener('click', () => {
+//   window.location.href = '/personal';
+// });
 
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ОТЫГРЫША БОНУСА

@@ -79,7 +79,12 @@ try {
     }
 
     if (res.status === 500) {
-    out.innerHTML = 'ЧТОТА ПАШЛО НЕТАК';
+    out.innerHTML = 'Проблемы с сервером статус 500';
+    return;
+    }
+
+    if (res.status === 404) {
+    out.innerHTML = '<div class="error404"><div class="error404-text">У клиента нет бонусного счета</div></div>';
     return;
     }
 

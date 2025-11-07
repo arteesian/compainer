@@ -88,9 +88,9 @@ def create_app():
     async def home(request: Request):
         return app.state.templates.TemplateResponse("home.html", {"request": request})
     
-    @app.get("/personal", response_class=HTMLResponse)
-    async def personal(request: Request):
-        return app.state.templates.TemplateResponse("personal.html", {"request": request})
+    # @app.get("/personal", response_class=HTMLResponse)
+    # async def personal(request: Request):
+    #     return app.state.templates.TemplateResponse("personal.html", {"request": request})
     
     @app.get("/wager", response_class=HTMLResponse)
     async def wager(request: Request):
@@ -140,7 +140,7 @@ def create_app():
     app.include_router(user_router)
     app.include_router(auth_router)
     app.include_router(superadmin_router)
-    app.include_router(personal_router)
+    #app.include_router(personal_router)
     app.include_router(sorry_bonus_router)
     app.include_router(common_actions_router)
 

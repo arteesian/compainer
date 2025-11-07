@@ -130,19 +130,29 @@ function backToProfile() {
 }
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ПЕРСОНАЛЬНЫХ АКЦИЙ
-document.getElementById('personal-actions').addEventListener('click', () => {
-  window.location.href = '/personal';
-});
+// document.getElementById('personal-actions').addEventListener('click', () => {
+//   window.location.href = '/personal';
+// });
 
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ TABLO
 document.getElementById('tablo').addEventListener('click', () => {
-  window.location.href = '/tablo';
+  const role = window.CURRENT_USER;
+  if (hasRole(role, "vip")) {
+        window.location.href = '/vip_tablo';
+    } else {
+      window.location.href = '/tablo';
+    }
 });
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ОБЩИХ АКЦИЙ
 document.getElementById('general-actions').addEventListener('click', () => {
-  window.location.href = '/home';
+  const role = window.CURRENT_USER;
+  if (hasRole(role, "vip")) {
+        window.location.href = '/vip_home';
+    } else {
+      window.location.href = '/home';
+    }
 });
 
 document.addEventListener('DOMContentLoaded', async () => {

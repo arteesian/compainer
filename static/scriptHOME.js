@@ -129,19 +129,29 @@ function backToProfile() {
 }
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ПЕРСОНАЛЬНЫХ АКЦИЙ
-document.getElementById('personal-actions').addEventListener('click', () => {
-  window.location.href = '/personal';
-});
+// document.getElementById('personal-actions').addEventListener('click', () => {
+//   window.location.href = '/personal';
+// });
 
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ОТЫГРЫША БОНУСА
 document.getElementById('bonus-wager').addEventListener('click', () => {
-  window.location.href = '/wager';
+  const role = window.CURRENT_USER;
+  if (hasRole(role, "vip")) {
+        window.location.href = '/vip_wager';
+    } else {
+      window.location.href = '/wager';
+    }
 });
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ТАБЛО
 document.getElementById('tablo').addEventListener('click', () => {
-  window.location.href = '/tablo';
+  const role = window.CURRENT_USER;
+  if (hasRole(role, "vip")) {
+        window.location.href = '/vip_tablo';
+    } else {
+      window.location.href = '/tablo';
+    }
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
