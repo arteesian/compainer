@@ -6,7 +6,7 @@ import asyncpg
 import httpx
 
 from config import settings
-from constants import EUROBONUS_10, EUROBONUS_30, EUROBONUS_50
+from constants import EUROBONUS_10, EUROBONUS_30, EUROBONUS_50, EUROBONUS_70, EUROBONUS_100
 from service.api_client_service import SecureAPIClient, logger
 from service.exceptions import ExternalAPIError
 
@@ -142,6 +142,18 @@ class SorryBonusService:
                     return {
                     "has_offer": True,
                     "euro_bonus_answer": EUROBONUS_50
+                }
+
+                elif api_response["message_code"] == 70:
+                    return {
+                    "has_offer": True,
+                    "euro_bonus_answer": EUROBONUS_70
+                }
+
+                elif api_response["message_code"] == 100:
+                    return {
+                    "has_offer": True,
+                    "euro_bonus_answer": EUROBONUS_100
                 }
 
             return {"data": "error", "details": api_response}
