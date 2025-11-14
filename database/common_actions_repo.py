@@ -1,7 +1,7 @@
 # repository.py
 from typing import Optional, List, Tuple
 from datetime import datetime
-from sqlalchemy import delete, func
+from sqlalchemy import delete, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload, joinedload
@@ -89,13 +89,19 @@ class CommonActionRepository:
 
         total_count = await self.session.scalar(count_query) or 0
 
+        status_order = case(
+            (CommonAction.state == ActionState.ACTIVE,   1),
+            (CommonAction.state == ActionState.INACTIVE, 2),
+            (CommonAction.state == ActionState.FINISHED, 3),
+            else_=4,
+        )
 
         stmt = (
             query
             .offset(offset)
             .limit(limit)
             .options(selectinload(CommonAction.questions_answers))
-            .order_by(CommonAction.id)
+            .order_by(status_order, CommonAction.id)
         )
 
         result = await self.session.execute(stmt)
@@ -217,13 +223,20 @@ class CommonActionRepository:
             select(func.count()).select_from(CommonAction).where(filter_condition)
         ) or 0
 
+        status_order = case(
+            (CommonAction.state == ActionState.ACTIVE,   1),
+            (CommonAction.state == ActionState.INACTIVE, 2),
+            (CommonAction.state == ActionState.FINISHED, 3),
+            else_=4,
+        )
+
         stmt = (
             select(CommonAction)
             .where(filter_condition)
             .offset(offset)
             .limit(limit)
             .options(selectinload(CommonAction.questions_answers))
-            .order_by(CommonAction.name)
+            .order_by(status_order, CommonAction.name)
         )
         result = await self.session.execute(stmt)
         actions = list(result.scalars().all())
