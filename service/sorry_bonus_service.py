@@ -260,13 +260,64 @@ class SorryBonusService:
             logger.error(f"Ошибка API: {error_msg}")
             raise ExternalAPIError(error_msg, response.status_code)
 
+    @staticmethod
+    def get_client_name(client_information: dict[str, Any]) -> str | None:
+        try:
+            for bo_class in client_information["response"]["list"]:
+                if bo_class["class"] == "Fon.Ora.Client":
+                    obj = bo_class.get("object") or {}
+                    full_fio = obj.get("fullFIO")
+
+                    fio_parts = full_fio.split()
+                    first_name = fio_parts[1] if len(fio_parts) >= 2 else None
+                    return first_name
+
+        except Exception as e:
+            logger.error(f"Ошибка получения имени клиента: {e}")
+        return None
+
+    @staticmethod
+    def is_email_confirmed(client_information: dict[str, Any]) -> bool:
+        for bo_class in client_information["response"]["list"]:
+            if bo_class["class"] == "Fon.Client.Extension":
+                return bo_class["object"]["emailConfirmed"]
+        return False
+
+    @staticmethod
+    async def get_client_rate(business_key: int) -> str | None:
+        try:
+            conn = await asyncpg.connect(
+                user=settings.ORPO_USER,
+                password=settings.ORPO_PASS,
+                database=settings.ORPO_BD,
+                host=settings.ORPO_HOST,
+                port=settings.ORPO_PORT
+            )
+
+            row = await conn.fetchrow(
+                "SELECT rating FROM support_data.player_rating WHERE business_key = $1",
+                business_key
+            )
+
+            await conn.close()
+
+            return row["rating"] if row else None
+        except Exception as e:
+            print(f"Orpo db exception: {e}")
+            await conn.close()
 
     async def get_combined_response_euro_bonus(self, client_id):
 
         client_information = await self.api_client.get_client_information(client_id=client_id)
+        client_first_name = self.get_client_name(client_information)
+        is_email_confirmed = self.is_email_confirmed(client_information)
+        client_rate = await SorryBonusService.get_client_rate(int(client_id))
 
         if SorryBonusService.has_bad_statuses(client_information):
             return {"client_id" : client_id,
+                    "client_first_name": client_first_name,
+                    "is_email_confimed": is_email_confirmed,
+                    "client_rate": client_rate,
                     "bad_state": True,
                     "data":
                         {"have_bonus": False,
@@ -277,6 +328,9 @@ class SorryBonusService:
         if SorryBonusService.is_vip(client_information):
             gather_data = await asyncio.gather(SorryBonusService.vip_flow_euro_bonus(client_id), self.vip_flow_sorry_bonus(client_id))
             return {"client_id": client_id,
+                    "client_first_name": client_first_name,
+                    "is_email_confimed": is_email_confirmed,
+                    "client_rate": client_rate,
                     "client_type": "vip",
                     "euro_bonus": gather_data[0],
                     "sorry_bonus": gather_data[1]}
@@ -284,6 +338,9 @@ class SorryBonusService:
         else:
             sorry_bonus =  await self.normal_flow_sorry_bonus(client_id)
             return {"client_id": client_id,
+                    "client_first_name": client_first_name,
+                    "is_email_confimed": is_email_confirmed,
+                    "client_rate": client_rate,
                     "client_type": "normal",
                     "sorry_bonus": sorry_bonus}
 
