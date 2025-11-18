@@ -155,10 +155,10 @@ function render(data) {
             html += `<br>`;
         }
         } else {
-        html += `Нет данных<br><br>`;
+        html += `Данных нет<br><br>`;
         }
     }
-    return html || '<div class="no-info">Данных нет</div>';
+    return html || '<div class="no-info">🚨 Запрет на участие в акциях 🚨</div>';
   }
 
     if (data.sorry_bonus) {
@@ -176,11 +176,11 @@ function render(data) {
                 </div>`;
             }
         } else {
-            html += `Нет данных<br><br>`;
+            html += `Данных нет<br><br>`;
         }
     } 
 
-  return html || '<div class="no-info">Данных нет</div>';
+  return html || '<div class="no-info">🚨 Запрет на участие в акциях 🚨</div>';
 }
 
 // ---------- actions ----------

@@ -1843,10 +1843,11 @@ button[data-value="inactive"], button[data-value="active"], button[data-value="f
 }
 
 .no-info {
-  margin-left: 230px;
+  margin-left: 100px;
   margin-top: 100px;
   font-family: Inter;
   font-size: 24px;
+  color:#f1a59f;
 }
 
 div[aria-labelledby="swal2-title"] {
