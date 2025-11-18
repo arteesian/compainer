@@ -277,6 +277,13 @@ class SorryBonusService:
         return None
 
     @staticmethod
+    def is_email_provided(client_information: dict[str, Any]) -> bool:
+        for bo_class in client_information["response"]["list"]:
+            if bo_class["class"] == "Fon.Client.Extension":
+                return True if bo_class["object"]["email"] is not None else False
+        return False
+
+    @staticmethod
     def is_email_confirmed(client_information: dict[str, Any]) -> bool:
         for bo_class in client_information["response"]["list"]:
             if bo_class["class"] == "Fon.Client.Extension":
@@ -310,12 +317,14 @@ class SorryBonusService:
 
         client_information = await self.api_client.get_client_information(client_id=client_id)
         client_first_name = self.get_client_name(client_information)
+        is_email_provided = self.is_email_provided(client_information)
         is_email_confirmed = self.is_email_confirmed(client_information)
         client_rate = await SorryBonusService.get_client_rate(int(client_id))
 
         if SorryBonusService.has_bad_statuses(client_information):
             return {"client_id" : client_id,
                     "client_first_name": client_first_name,
+                    "is_email_provided": is_email_provided,
                     "is_email_confimed": is_email_confirmed,
                     "client_rate": client_rate,
                     "bad_state": True,
@@ -329,6 +338,7 @@ class SorryBonusService:
             gather_data = await asyncio.gather(SorryBonusService.vip_flow_euro_bonus(client_id), self.vip_flow_sorry_bonus(client_id))
             return {"client_id": client_id,
                     "client_first_name": client_first_name,
+                    "is_email_provided": is_email_provided,
                     "is_email_confimed": is_email_confirmed,
                     "client_rate": client_rate,
                     "client_type": "vip",
@@ -339,6 +349,7 @@ class SorryBonusService:
             sorry_bonus =  await self.normal_flow_sorry_bonus(client_id)
             return {"client_id": client_id,
                     "client_first_name": client_first_name,
+                    "is_email_provided": is_email_provided,
                     "is_email_confimed": is_email_confirmed,
                     "client_rate": client_rate,
                     "client_type": "normal",
