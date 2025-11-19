@@ -686,6 +686,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
       let a;
       try {
         a = await fetchAction(id);
+        console.log(">>>> " + a)
       } catch {
         content.innerHTML = `<div style="padding:16px 8px;color:#ff5b5b;">Не удалось загрузить акцию</div>`;
         return;
@@ -759,7 +760,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
     content.innerHTML = `
       <form class="ga-edit-form">
         <label>Название <input name="name" type="text" value="" required></label>
-        <label>Название в Backoffice (name_bo)<input name="name_bo" type="text" value="${esc(a.name_bo || '')}"></label>
+        <label>Название в Backoffice (name_bo)<input name="name_bo" type="text" value=""></label>
         <label>Ссылка <input name="link" type="url" value=""></label>
         <div class="block-short-rules">
           <label id="label-short-rules">Краткие правила</label><textarea name="short_rules" rows="3"></textarea>
