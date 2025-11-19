@@ -1791,11 +1791,15 @@ textarea:focus, textarea:focus-visible {
 }
 
 input[name="name"], input[name="link"] {
-  width: 700px;
+  width: 680px;
 }
 
 input[name="players"] {
   width: 360px;
+}
+
+input[name="name_bo"] {
+  width: 560px;
 }
 
 .block-short-rules, .block-answer {

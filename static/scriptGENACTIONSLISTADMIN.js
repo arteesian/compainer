@@ -698,7 +698,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
       content.innerHTML = `
         <form class="ga-edit-form" data-id="${id}">
           <label>Название <input name="name" type="text" value="${esc(a.name||'')}" required></label>
-          <label>Название в Backoffice (name_bo)<input name="name_bo" type="text" value="${esc(a.name_bo || '')}"></label>
+          <label>Название в Backoffice <input name="name_bo" type="text" value="${esc(a.name_bo || '')}"></label>
           <label>Ссылка <input name="link" type="url" value="${esc(a.link||'')}"></label>
           <div class="block-short-rules">
             <label>Краткие правила</label><textarea name="short_rules" rows="3">${esc(a.short_rules||'')}</textarea>
@@ -760,7 +760,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
     content.innerHTML = `
       <form class="ga-edit-form">
         <label>Название <input name="name" type="text" value="" required></label>
-        <label>Название в Backoffice (name_bo)<input name="name_bo" type="text" value=""></label>
+        <label>Название в Backoffice <input name="name_bo" type="text" value=""></label>
         <label>Ссылка <input name="link" type="url" value=""></label>
         <div class="block-short-rules">
           <label id="label-short-rules">Краткие правила</label><textarea name="short_rules" rows="3"></textarea>
