@@ -9,3 +9,4 @@ __pycache__/
 *.log
 venv/
 tests/
+desktop.ini
