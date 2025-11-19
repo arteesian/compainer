@@ -697,6 +697,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
       content.innerHTML = `
         <form class="ga-edit-form" data-id="${id}">
           <label>Название <input name="name" type="text" value="${esc(a.name||'')}" required></label>
+          <label>Название в Backoffice (name_bo)<input name="name_bo" type="text" value="${esc(a.name_bo || '')}"></label>
           <label>Ссылка <input name="link" type="url" value="${esc(a.link||'')}"></label>
           <div class="block-short-rules">
             <label>Краткие правила</label><textarea name="short_rules" rows="3">${esc(a.short_rules||'')}</textarea>
@@ -758,6 +759,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
     content.innerHTML = `
       <form class="ga-edit-form">
         <label>Название <input name="name" type="text" value="" required></label>
+        <label>Название в Backoffice (name_bo)<input name="name_bo" type="text" value="${esc(a.name_bo || '')}"></label>
         <label>Ссылка <input name="link" type="url" value=""></label>
         <div class="block-short-rules">
           <label id="label-short-rules">Краткие правила</label><textarea name="short_rules" rows="3"></textarea>
@@ -823,6 +825,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
 
     const payload = {
       name:        fd.get('name')?.toString().trim() || undefined,
+      name_bo:     fd.get('name_bo')?.toString().trim() || undefined,
       link:        fd.get('link')?.toString().trim() || undefined,
       short_rules: fd.get('short_rules')?.toString() || undefined,
       answer:      fd.get('answer')?.toString() || undefined,

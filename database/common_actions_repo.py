@@ -5,6 +5,7 @@ from sqlalchemy import delete, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy import or_
 
 from database.models import CommonAction, QuestionAnswer, ActionState
 
@@ -25,9 +26,11 @@ class CommonActionRepository:
         answer: Optional[str] = None,
         players: Optional[str] = None,
         state: ActionState = ActionState.ACTIVE,
+        name_bo: Optional[str] = None,
     ) -> CommonAction:
         action = CommonAction(
             name=name,
+            name_bo=name_bo,
             short_rules=short_rules,
             link=link,
             start_time=start_time,
@@ -121,7 +124,7 @@ class CommonActionRepository:
             raise ValueError(f"Action {action_id} not found")
 
         updatable_fields = {
-            "name", "short_rules", "link", "start_time", "end_time",
+            "name", "name_bo", "short_rules", "link", "start_time", "end_time",
             "is_vip", "answer", "players", "state"
         }
         for key, value in kwargs.items():
@@ -217,7 +220,10 @@ class CommonActionRepository:
             limit: int = 10
     ) -> Tuple[List[CommonAction], int]:
 
-        filter_condition = CommonAction.name.icontains(query)
+        filter_condition = or_(
+            CommonAction.name.icontains(query),
+            CommonAction.name_bo.icontains(query)
+        )
 
         total_count = await self.session.scalar(
             select(func.count()).select_from(CommonAction).where(filter_condition)
