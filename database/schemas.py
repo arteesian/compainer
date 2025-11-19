@@ -80,6 +80,7 @@ class QuestionAnswerOut(QuestionAnswerBase):
 # === Акции ===
 class CommonActionBase(BaseModel):
     name: str = Field(..., max_length=255)
+    name_bo: Optional[str] = Field(None, max_length=255)
     short_rules: Optional[str] = Field(None, max_length=1000)
     link: Optional[str] = Field(None, max_length=500)
     start_time: Optional[datetime] = None
@@ -100,6 +101,7 @@ class CommonActionCreate(CommonActionBase):
 
 class CommonActionUpdate(CommonActionBase):
     name: Optional[str] = None
+    name_bo: Optional[str] = None
     end_time: Optional[datetime] = None
 
     class Config:

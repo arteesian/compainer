@@ -68,6 +68,7 @@ class CommonAction(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    name_bo: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     short_rules: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
     link: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     start_time: Mapped[datetime] = mapped_column(DateTime, nullable=True)
