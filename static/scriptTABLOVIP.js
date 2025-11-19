@@ -230,7 +230,7 @@ function validateClientIdEmail(clientId, email) {
 // Подставь актуальные способы получить clientId и email в твоем проекте:
 function getClientId() {
   // если у тебя input с номером счета называется иначе — поменяй селектор
-  return document.getElementById('inputID')?.value?.trim() || '';
+  return inputID?.value?.trim() || '';
 }
 function getUserEmail() {
   // подстрой под свою логику: глобальный объект, скрытый input, и т.п.
