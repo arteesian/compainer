@@ -252,7 +252,7 @@ document.getElementById('vip-tablo-accrue')?.addEventListener('click', async () 
       return;
     }
 
-    const res = await fetch('https://pari-ud-api.pbcorp.ru/ServiceAPI/hs/OATS/WantFreeBet', {
+    const res = await fetch('/api/v1/acquire_freebet', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ clientId, email }),
