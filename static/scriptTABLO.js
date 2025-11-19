@@ -27,7 +27,7 @@ const SORRY_MACROS = [
 
   // 3 (если пришла причина из back)
   `<div class="macro">
-    Сейчас для вас нет индивидуальных предложений. Вы обязательно узнаете о доступных бонусах и акциях из SMS, электронной почты или PUSH-уведомлений.<br>
+    сейчас для вас нет индивидуальных предложений. Вы обязательно узнаете о доступных бонусах и акциях из SMS, электронной почты или PUSH-уведомлений.<br>
     Мы сообщим вам о бонусе при первой же возможности 🍀<br>
     Информация о действующих акциях:<br>
     ⭐️ Актуальные акции: <a href="https://pari.ru/bonuses" target="_blank" rel="noopener">https://pari.ru/bonuses</a><br>
@@ -36,7 +36,7 @@ const SORRY_MACROS = [
 
   // 4 (про активность)
   `<div class="macro">
-    Cейчас индивидуальные предложения по вашему игровому счету отсутствуют. Мы начисляем бонусы не по графику, и они зависят от совокупности факторов.<br>
+    сейчас индивидуальные предложения по вашему игровому счету отсутствуют. Мы начисляем бонусы не по графику, и они зависят от совокупности факторов.<br>
     Вы обязательно узнаете о доступных бонусах и акциях из SMS, электронной почты или PUSH-уведомлений.<br>
     Продолжайте активную игру и мы сообщим вам о бонусе при первой же возможности 😊
   </div>`,
@@ -47,6 +47,13 @@ const SORRY_MACROS = [
     Все просто: играйте и следите за нашими уведомлениями, чтобы ничего не пропустить!
   </div>`,
 ];
+
+let lastApiResponse = null;
+
+const text_mail_1 = `
+На вашем счете не подтвержден электронный адрес. Можете запросить код активации или сменить на актуальный в приложении, либо по ссылке 👉 pari.ru/account/profile/change-email/`;
+const text_mail_2 = `
+На вашем счете отсутствует адрес электронной почты❕ Внести адрес электронной почты можете во вкладке «Профиль» (нажмите на силуэт человека в верхнем правом углу) или по ссылке: 🔗 https://pari.ru/account/profile/change-email 🙌`;
 
 function ensureMacroHost() {
   // создаём контейнер под слайды, если его ещё нет
@@ -76,7 +83,49 @@ function resetUIBeforeFetch() {
 function renderMacro(index = macroIndex) {
   const host = ensureMacroHost();
   macroIndex = (index + SORRY_MACROS.length) % SORRY_MACROS.length;
-  host.innerHTML = SORRY_MACROS[macroIndex];
+
+  // Берём HTML текущего макроса
+  let macroHtml = SORRY_MACROS[macroIndex];
+
+  // По умолчанию доп. блок про почту пустой
+  let mailPartHtml = '';
+
+  if (lastApiResponse) {
+    const name = lastApiResponse.client_first_name;
+    const isEmailProvided  = !!lastApiResponse.is_email_provided;  // true/false
+    const isEmailConfirmed = !!lastApiResponse.is_email_confimed;  // ОБРАТИ ВНИМАНИЕ: confimed как в JSON
+
+    // 1) Имя: "Имя, " перед текстом макроса
+    if (name) {
+      // Вставляем "Имя, " сразу после <div class="macro">
+      macroHtml = macroHtml.replace(
+        '<div class="macro">',
+        `<div class="macro">${escapeHtml(name)}, `
+      );
+    }
+
+    // 2) Логика по почте:
+    //
+    // if (is_email_provided == true && is_email_confimed == true) — ничего не добавляем
+    // elif (is_email_provided == true && is_email_confimed == false) — + text_mail_1
+    // elif (is_email_provided == false && is_email_confimed == false) — + text_mail_2
+
+    if (isEmailProvided && !isEmailConfirmed) {
+      // почта указана, но не подтверждена
+      if (typeof text_mail_1 !== 'undefined') {
+        mailPartHtml = `<br><br>${escapeHtml(text_mail_1)}`;
+      }
+    } else if (!isEmailProvided && !isEmailConfirmed) {
+      // почта не указана и не подтверждена
+      if (typeof text_mail_2 !== 'undefined') {
+        mailPartHtml = `<br><br>${escapeHtml(text_mail_2)}`;
+      }
+    }
+  }
+
+  // Итого в div макроса будет:
+  // "Имя, SORRY_MACROS[macroIndex] \n\n text_mail_X"
+  host.innerHTML = `${macroHtml}${mailPartHtml}`;
 }
 
 function showAnswerButtons(show) {
@@ -227,6 +276,7 @@ async function sendRequest() {
     }
 
     const data = await res.json();
+    lastApiResponse = data;
     out.innerHTML = render(data);
 
     // логика показа карусели только если есть sorry_bonus и он НЕ доступен
