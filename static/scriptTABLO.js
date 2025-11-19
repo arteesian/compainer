@@ -6,6 +6,7 @@ const copyBtn = document.querySelector('.tablo-info-body-button-copy');
 const answersWrap = document.querySelector('.buttons-answers-for-clients');
 const btnAnsLeft  = document.querySelector('.answer-left');
 const btnAnsRight = document.querySelector('.answer-right');
+const bonusRateEl = document.querySelector('.bonusrate');
 if (copyBtn) copyBtn.classList.add('hidden');
 
 let macroIndex = 0;
@@ -73,6 +74,7 @@ function resetUIBeforeFetch() {
 
   // спрятать кнопку "Скопировать"
   if (copyBtn) copyBtn.classList.add('hidden');
+  if (bonusRateEl) bonusRateEl.textContent = '';
 
   // убрать текущий слайд карусели (если был)
   const host = out.querySelector('#macro-slide');
@@ -277,6 +279,21 @@ async function sendRequest() {
 
     const data = await res.json();
     lastApiResponse = data;
+    if (bonusRateEl) {
+      const rawBonusRate =
+        data && data.client_rate != null
+          ? data.client_rate
+          : (data?.sorry_bonus?.data && data.sorry_bonus.data.client_rate != null
+              ? data.sorry_bonus.data.client_rate
+              : null);
+
+      // если значение не пришло — просто очищаем звёздочку
+      if (rawBonusRate === null || rawBonusRate === undefined || rawBonusRate === '') {
+        bonusRateEl.textContent = '';
+      } else {
+        bonusRateEl.textContent = String(rawBonusRate);
+      }
+    }
     out.innerHTML = render(data);
 
     // логика показа карусели только если есть sorry_bonus и он НЕ доступен

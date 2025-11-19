@@ -766,13 +766,44 @@ li.amount-of-pages-selected {
   border: 1px solid #2E2E2E;
 }
 
+.bonusrate {
+  position: absolute;
+  top: -60%;
+  right: -25%;
+  width: 61px;                     
+  height: 58px;
+  display: inline-flex;
+  align-items: center;              
+  justify-content: center;          
+
+  background-image: url("/static/img/icon_bonusrate.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  font-size: 18px;                  
+
+  padding-top: 4px;
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow:
+    -2px 0 0 rgba(26, 26, 26, 0.9),
+     2px 0 0 rgba(26, 26, 26, 0.9),
+     0 -2px 0 rgba(26, 26, 26, 0.9),
+     0  2px 0 rgba(26, 26, 26, 0.9);
+
+}
+
+
 .wager-window-id-client-title {
+  position: relative;
   font-size: 24px;
   color: #00C7B1;
   font-weight: 500;
 }
 
 .wager-window-id-client-title-vip {
+  position: relative;
   font-size: 24px;
   color: #B40091;
   font-weight: 500;
