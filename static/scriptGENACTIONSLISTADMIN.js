@@ -151,6 +151,56 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
       }
     });
 
+    // делегирование кликов по кнопкам "Удалить" внутри аккордеона FAQ
+    document.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('.ga-acc-delete-admin');
+      if (!btn) return;
+
+      const item = btn.closest('.ga-acc-item');
+      if (!item) return;
+
+      const qaId = item.dataset.qa;
+      if (!qaId) {
+        alert('Не найден идентификатор вопроса.');
+        return;
+      }
+
+      const ok = confirm('Удалить этот вопрос?');
+      if (!ok) return;
+
+      try {
+        btn.disabled = true;
+
+        const res = await fetch(`/api/v1/common_actions/qa/${qaId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (!res.ok) {
+          const errText = await res.text().catch(() => '');
+          throw new Error(errText || 'Не удалось удалить вопрос');
+        }
+
+        // Убираем вопрос из DOM
+        const accordion = item.closest('.ga-accordion');
+        item.remove();
+
+        // Если вопросов не осталось — показываем заглушку (как в случае, когда их нет изначально)
+        if (accordion && !accordion.querySelector('.ga-acc-item')) {
+          accordion.insertAdjacentHTML(
+            'beforebegin',
+            `<div class="ga-faq-empty">Нет одобренных вопросов</div>`
+          );
+          accordion.remove();
+        }
+      } catch (err) {
+        alert(err?.message || 'Ошибка при удалении вопроса');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+
     document.addEventListener('click', async (e) => {
       // Открыть форму добавления
       const addFaqBtn = e.target.closest('#button-add-faq-admin');
@@ -262,12 +312,19 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
       const items = approved.map((qa) => {
         const q = esc(qa.question || 'Вопрос');
         const a = esc(qa.answer || '');
+        const id = qa.id; // QuestionAnswerOut.id приходит с бэка
+
         return `
-          <details class="ga-acc-item">
-            <summary class="ga-acc-summary-admin"><span class="ga-acc-q">${q}</span></summary>
+          <details class="ga-acc-item" data-qa="${id}">
+            <summary class="ga-acc-summary-admin">
+              <span class="ga-acc-q">${q}</span>
+            </summary>
             <div class="ga-acc-content">
               <div class="ga-acc-answer" data-answer="${a}">${a}</div>
-              <div class="ga-acc-copy-block"><button type="button" class="ga-acc-copy-admin">Скопировать</button></div>
+              <div class="ga-acc-copy-block">
+                <button type="button" class="ga-acc-copy-admin">Скопировать</button>
+                <button type="button" class="ga-acc-delete-admin">Удалить</button>
+              </div>
             </div>
           </details>
         `;
@@ -275,6 +332,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
 
       return `<div class="ga-accordion">${items}</div>` + addBtn;
     }
+
 
     function openModalAnswerText(text) {
       ensureModal();

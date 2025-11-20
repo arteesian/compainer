@@ -1592,6 +1592,10 @@ input[type="checkbox"] {
   align-items: center;
 }
 
+.ga-acc-copy-block {
+  gap: 10px;
+}
+
 .ga-faq-add-wrap {
   padding-top: 20px;
 }
@@ -1656,7 +1660,7 @@ label[for="faq-q"], label[for="faq-a"] {
   border-radius: 5px;
 }
 
-.ga-btn-cancel, #delete-qa {
+.ga-btn-cancel, #delete-qa, .ga-acc-delete-admin {
   all: initial !important;
   color: white !important;
   border: none !important;
@@ -1673,10 +1677,13 @@ label[for="faq-q"], label[for="faq-a"] {
   transition: all 0.3s ease !important;
 }
 
-.ga-btn-cancel:hover, #delete-qa:hover {
+.ga-btn-cancel:hover, #delete-qa:hover, .ga-acc-delete-admin:hover {
   border: 1px solid rgba(255, 43, 43, 0.5) !important;
   background: rgba(255, 43, 43, 0.2) !important;
 }
+
+
+
 
 textarea:focus, textarea:focus-visible {
   outline: none;
