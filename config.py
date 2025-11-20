@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     ORPO_PORT: int
     ORPO_BD: str
     TEST_BASE_URL: str
+    TELEGRAM_BOT_TOKEN: str
+    TELEGRAM_COMMON_ACTIONS_CHAT_ID: str
+    TELEGRAM_COMMON_ACTIONS_TOPIC_ID: int | None = None
 
     @property
     def DATABASE_URL_asyncpg(self):

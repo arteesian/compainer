@@ -1,10 +1,11 @@
 # main.py
-from fastapi import FastAPI, Depends, HTTPException, status, Query, APIRouter
+from fastapi import FastAPI, Depends, HTTPException, status, Query, APIRouter, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
 from service.auth import require_role, get_current_user
 from service.dependencies_service import get_action_service_dep
 from service.common_actions_service import CommonActionService
+from service.telegram_notifier import notify_common_action_created
 from database.schemas import (
     CommonActionCreate,
     CommonActionUpdate,
@@ -21,10 +22,16 @@ common_actions_router = APIRouter(prefix="/api/v1/common_actions", tags=["акц
 @common_actions_router.post("/", response_model=CommonActionOut, status_code=status.HTTP_201_CREATED)
 async def create_action(
     data: CommonActionCreate,
+    background_tasks: BackgroundTasks,
     service: CommonActionService = Depends(get_action_service_dep)
 ):
     try:
-        return await service.create_action(data)
+        action = await service.create_action(data)
+
+        # Отправляем уведомление уже после успешного ответа
+        background_tasks.add_task(notify_common_action_created, action)
+
+        return action
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
