@@ -74,7 +74,7 @@ class CommonAction(Base):
     start_time: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     end_time: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     is_vip: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    answer: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    answer: Mapped[Optional[str]] = mapped_column(String(1500), nullable=True)
     players: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     state: Mapped[ActionState] = mapped_column(
         SQLEnum(ActionState, name="action_state_enum"),

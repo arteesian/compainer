@@ -86,7 +86,7 @@ class CommonActionBase(BaseModel):
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     is_vip: bool = False
-    answer: Optional[str] = Field(None, max_length=1000)
+    answer: Optional[str] = Field(None, max_length=1500)
     players: Optional[str] = Field(None, max_length=500)
     state: ActionStateEnum = ActionStateEnum.active
 
