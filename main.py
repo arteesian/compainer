@@ -19,14 +19,37 @@ from routes.personal import personal_router
 from routes.sorry_bonus import sorry_bonus_router
 from service.auth import get_current_user_optional
 from service.auth import require_role
+import asyncio
+from contextlib import asynccontextmanager, suppress
+import logging
+from service.common_actions_scheduler import start_common_actions_scheduler
 
 BASE_DIR = Path(__file__).resolve().parent
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger = logging.getLogger(__name__)
+    logger.info("lifespan: starting common_actions_scheduler task")
+    task = asyncio.create_task(start_common_actions_scheduler())
+    try:
+        yield
+    finally:
+        logger.info("lifespan: cancelling common_actions_scheduler task")
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
 
 def create_app():
     app = FastAPI(title="Pari Compainer",
                   description="Pari Actions in one place",
                   debug=True,
-                  docs_url=None, redoc_url=None, openapi_url=None)
+                  docs_url=None, redoc_url=None, openapi_url=None,
+                  lifespan=lifespan)
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(
