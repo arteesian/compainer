@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 
-from sqlalchemy import DateTime, BigInteger, String, Column, Integer, ForeignKey, Enum as SQLEnum
+from sqlalchemy import DateTime, BigInteger, String, Column, Integer, ForeignKey, Enum as SQLEnum, func
 from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import Boolean
 
@@ -80,6 +80,12 @@ class CommonAction(Base):
         SQLEnum(ActionState, name="action_state_enum"),
         nullable=False,
         default=ActionState.ACTIVE
+    )
+
+    creation_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
     )
 
     questions_answers: Mapped[List["QuestionAnswer"]] = relationship(

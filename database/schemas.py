@@ -110,6 +110,7 @@ class CommonActionUpdate(CommonActionBase):
 
 class CommonActionOut(CommonActionBase):
     id: int
+    creation_time: datetime
     questions_answers: List[QuestionAnswerOut] = []
 
     class Config:
