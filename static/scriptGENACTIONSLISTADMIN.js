@@ -897,12 +897,16 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
       return dtStr.length === 16 ? dtStr + ':00' : dtStr; // 'YYYY-MM-DDTHH:MM:SS'
     }
 
+    // делаем возможным сохранять пустое поле для answer
+    const answerRaw = fd.get('answer');
+    const answerTrimmed = answerRaw != null ? answerRaw.toString().trim() : null;
+
     const payload = {
       name:        fd.get('name')?.toString().trim() || undefined,
       name_bo:     fd.get('name_bo')?.toString().trim() || undefined,
       link:        fd.get('link')?.toString().trim() || undefined,
       short_rules: fd.get('short_rules')?.toString() || undefined,
-      answer:      fd.get('answer')?.toString() || undefined,
+      answer:      (answerTrimmed === '' ? null : answerTrimmed),
       players:     fd.get('players')?.toString().trim() || undefined,
       start_time:  asNaiveLocal(fd.get('start_time')?.toString()),
       end_time:    asNaiveLocal(fd.get('end_time')?.toString()),

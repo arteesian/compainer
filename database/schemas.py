@@ -102,6 +102,7 @@ class CommonActionCreate(CommonActionBase):
 class CommonActionUpdate(CommonActionBase):
     name: Optional[str] = None
     name_bo: Optional[str] = None
+    answer: Optional[str] = None
     end_time: Optional[datetime] = None
 
     class Config:

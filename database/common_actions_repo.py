@@ -128,8 +128,16 @@ class CommonActionRepository:
             "is_vip", "answer", "players", "state"
         }
         for key, value in kwargs.items():
-            if key in updatable_fields and value is not None:
-                setattr(action, key, value)
+            if key not in updatable_fields:
+                continue
+
+            #разрешаем очистку поля answer
+            if key == "answer":
+                cleaned = value or None
+                setattr(action, "answer", cleaned)
+            else:
+                if value is not None:
+                    setattr(action, key, value)
 
         self.session.add(action)
         return action
