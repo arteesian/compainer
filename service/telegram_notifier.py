@@ -6,13 +6,17 @@ from database.models import CommonAction, QuestionAnswer
 
 logger = logging.getLogger(__name__)
 
-async def _send_telegram_message(text: str, parse_mode: str = "HTML") -> None:
+token = settings.TELEGRAM_BOT_TOKEN
+chat_id = settings.TELEGRAM_COMMON_ACTIONS_CHAT_ID
+
+topic_common_questions = settings.TELEGRAM_COMMON_ACTIONS_TOPIC_ID
+topic_faq = settings.TELEGRAM_FAQ_TOPIC_ID
+
+async def _send_telegram_message(text: str, parse_mode: str = "HTML", topic_id: int | None = None) -> None:
     """
         Базовая отправка сообщения в Telegram.
         Ничего не возвращает и не роняет приложение при ошибке.
     """
-    token = settings.TELEGRAM_BOT_TOKEN
-    chat_id = settings.TELEGRAM_COMMON_ACTIONS_CHAT_ID
 
     if not token or not chat_id:
         logger.warning("Telegram is not configured, skip sending message")
@@ -28,8 +32,8 @@ async def _send_telegram_message(text: str, parse_mode: str = "HTML") -> None:
     }
 
     # если надо писать в конкретный топик внутри группы
-    if settings.TELEGRAM_COMMON_ACTIONS_TOPIC_ID is not None:
-        payload["message_thread_id"] = settings.TELEGRAM_COMMON_ACTIONS_TOPIC_ID
+    if topic_id:
+        payload["message_thread_id"] = topic_id
 
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -87,7 +91,7 @@ async def notify_common_action_created(action: CommonAction) -> None:
 
     text = "\n".join(lines)
 
-    await _send_telegram_message(text)
+    await _send_telegram_message(text, topic_id=topic_common_questions)
 
 async def notify_qa_question_created(qa: QuestionAnswer) -> None:
     """
@@ -109,4 +113,4 @@ async def notify_qa_question_created(qa: QuestionAnswer) -> None:
     ]
 
     text = "\n".join(lines)
-    await _send_telegram_message(text)
+    await _send_telegram_message(text, topic_id=topic_faq)

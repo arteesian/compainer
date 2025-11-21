@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str
     TELEGRAM_COMMON_ACTIONS_CHAT_ID: str
     TELEGRAM_COMMON_ACTIONS_TOPIC_ID: int | None = None
+    TELEGRAM_FAQ_TOPIC_ID: int | None = None
 
     @property
     def DATABASE_URL_asyncpg(self):

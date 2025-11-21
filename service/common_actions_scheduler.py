@@ -49,13 +49,13 @@ async def start_common_actions_scheduler(
     # устанавливаем время обновления 00:05 МСК (UTC+3)
     run_time: time = time(hour=21, minute=5),
 ) -> None:
-    logger.info("common_actions_scheduler: loop started, run_time=%s", run_time)
+    logger.info("loop started, run_time=%s", run_time)
 
     while True:
         delay = _seconds_until_next_run(run_time)
         next_run = datetime.now() + timedelta(seconds=delay)
         logger.info(
-            "common_actions_scheduler: next run at %s (sleep %.0f seconds)",
+            "next run at %s (sleep %.0f seconds)",
             next_run,
             delay,
         )
@@ -65,10 +65,10 @@ async def start_common_actions_scheduler(
         try:
             updated = await _run_once()
             logger.info(
-                "common_actions_scheduler: finished %d expired common actions",
+                "finished %d expired common actions",
                 updated,
             )
         except Exception:
             logger.exception(
-                "common_actions_scheduler: unexpected error while updating actions"
+                "unexpected error while updating actions"
             )
