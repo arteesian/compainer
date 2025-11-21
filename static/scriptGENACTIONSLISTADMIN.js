@@ -875,6 +875,21 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
     const id = form.dataset.id;
     const fd = new FormData(form);
 
+        // --- ПРОВЕРКА длины поля "Ответ клиенту" ---
+    const answerValue = (fd.get('answer') ?? '').toString();
+    const ANSWER_MAX_LEN = 1500;
+
+    if (answerValue.length > ANSWER_MAX_LEN) {
+      alert(
+        `Поле "Ответ клиенту" не должно превышать ${ANSWER_MAX_LEN} символов.\n` +
+        `Сейчас: ${answerValue.length}.`
+      );
+      // Не отправляем запрос на бэкенд, пока пользователь не укоротит текст
+      return;
+    }
+    // --- КОНЕЦ ПРОВЕРКИ ---
+
+
     function asNaiveLocal(dtStr) {
       if (!dtStr) return undefined; // пусть поле пропустится
       // <input type="datetime-local"> обычно даёт 'YYYY-MM-DDTHH:MM'
