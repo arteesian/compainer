@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 import httpx
 from config import settings
-from database.models import CommonAction
+from database.models import CommonAction, QuestionAnswer
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ def _bool_to_emoji(value: bool) -> str:
 
 async def notify_common_action_created(action: CommonAction) -> None:
     """
-        Формирует красивое сообщение о новой общей акции и отправляет его в Telegram.
+        Формирует сообщение о новой общей акции и отправляет его в Telegram.
     """
     from datetime import datetime
 
@@ -87,4 +87,26 @@ async def notify_common_action_created(action: CommonAction) -> None:
 
     text = "\n".join(lines)
 
+    await _send_telegram_message(text)
+
+async def notify_qa_question_created(qa: QuestionAnswer) -> None:
+    """
+        Формирует сообщение о новом вопросе в FAQ и отправляет его в Telegram.
+    """
+    action = qa.action
+    who = qa.who_sent or "не указано"
+
+    lines: list[str] = [
+        "❓ <b>Новый вопрос в FAQ по акции</b>",
+        "",
+        f"Акция: <b>{action.name}</b>",
+        f"Название акции в BackOffice: {action.name_bo}",
+        "",
+        f"Вопрос:",
+        f"{qa.question}",
+        "",
+        f"Отправитель: {who}",
+    ]
+
+    text = "\n".join(lines)
     await _send_telegram_message(text)

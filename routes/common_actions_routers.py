@@ -5,7 +5,7 @@ from typing import Optional, List
 from service.auth import require_role, get_current_user
 from service.dependencies_service import get_action_service_dep
 from service.common_actions_service import CommonActionService
-from service.telegram_notifier import notify_common_action_created
+from service.telegram_notifier import notify_common_action_created, notify_qa_question_created
 from database.schemas import (
     CommonActionCreate,
     CommonActionUpdate,
@@ -102,10 +102,13 @@ async def delete_action(
 async def create_qa(
     action_id: int,
     data: QuestionAnswerCreate,
+    background_tasks: BackgroundTasks,
     service: CommonActionService = Depends(get_action_service_dep)
 ):
     try:
-        return await service.create_question_answer(action_id, data)
+        qa = await service.create_question_answer(action_id, data)
+        background_tasks.add_task(notify_qa_question_created, qa)
+        return qa
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

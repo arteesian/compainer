@@ -72,7 +72,7 @@ class CommonActionService:
         try:
             qa = await self.repo.create_question_answer(action_id=action_id, **data.model_dump())
             await self.session.commit()
-            await self.session.refresh(qa)
+            await self.session.refresh(qa, attribute_names=["action"])
             return qa
         except Exception:
             await self.session.rollback()
