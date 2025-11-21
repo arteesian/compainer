@@ -875,7 +875,7 @@ function getSelectedIdsArray() { return Array.from(selectedIds); }
     const id = form.dataset.id;
     const fd = new FormData(form);
 
-        // --- ПРОВЕРКА длины поля "Ответ клиенту" ---
+    // --- ПРОВЕРКА длины поля "Ответ клиенту" ---
     const answerValue = (fd.get('answer') ?? '').toString();
     const ANSWER_MAX_LEN = 1500;
 
