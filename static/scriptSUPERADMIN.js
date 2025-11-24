@@ -67,34 +67,60 @@ function render() {
   const q = (searchInput.value || "").trim().toLowerCase();
   const list = rawUsers.filter(u => !q || u.email.toLowerCase().includes(q));
   viewUsers = list;
+
   if (!list.length) {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:12px;">Ничего не найдено</td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(u => {
+
+  const fmt = (s) => {
+    if (!s) return "-";
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return "-";
+    const p = (n) => String(n).padStart(2, "0");
+    return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()} ` +
+           `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  };
+
+  tbody.innerHTML = list.map((u) => {
     const role = roleFromFlags(u);
     const self = currentUser && currentUser.email === u.email;
-    // если это я — запрещаем снять у себя admin (и вообще править себя)
-    const vipBox = `<input type="checkbox" class="sa-vip" data-email="${u.email}" ${u.is_vip ? "checked" : ""} ${self ? "disabled" : ""}>`;
-    const admBox = `<input type="checkbox" class="sa-admin" data-email="${u.email}" ${u.is_admin ? "checked" : ""} ${self ? "disabled" : ""}>`;
-    const actBtn = `<button class="sa-refresh" data-email="${u.email}">↻</button>`;
-    const fmt = s => {
-      const d = new Date(s);
-      const p = n => String(n).padStart(2, '0'); // паддинг
-      return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ` +
-            `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-    };
+
+    // чекбокс VIP
+    const vipBox =
+      `<input type="checkbox" class="sa-vip" data-email="${u.email}"` +
+      (u.is_vip ? " checked" : "") +
+      (self ? " disabled" : "") +
+      ">";
+
+    // чекбокс Admin
+    const admBox =
+      `<input type="checkbox" class="sa-admin" data-email="${u.email}"` +
+      (u.is_admin ? " checked" : "") +
+      (self ? " disabled" : "") +
+      ">";
+
+    // кнопка обновить
+    const actBtn =
+      `<button class="sa-refresh" data-email="${u.email}" title="Обновить список">↻</button>`;
+
+    // кнопка удалить (скрываем для своей учётки)
+    const delBtn = self
+      ? ""
+      : `<button class="sa-delete" data-email="${u.email}" title="Удалить пользователя">✖</button>`;
+
     return `
       <tr>
         <td style="padding:10px;">${u.email}</td>
-        <td style="padding:10px;">${fmt(u.last_activity_at) ?? "-"}</td>
+        <td style="padding:10px;">${fmt(u.last_activity_at)}</td>
         <td style="padding:10px;"><span class="badge role-${role}">${role.toUpperCase()}</span></td>
         <td style="padding:10px;">${vipBox}</td>
         <td style="padding:10px;">${admBox}</td>
-        <td style="padding:10px;display:flex;gap:8px;">${actBtn}</td>
+        <td style="padding:10px;display:flex;gap:8px;">${actBtn}${delBtn}</td>
       </tr>`;
   }).join("");
 }
+
 
 async function fetchUsers() {
   const params = new URLSearchParams();
@@ -132,6 +158,45 @@ async function patchRole(email, nextVIP, nextADM) {
   return true;
 }
 
+async function deleteUserByEmail(email) {
+  if (!email) return;
+
+  // Защита от удаления себя
+  if (currentUser && currentUser.email === email) {
+    showToast("Нельзя удалить свою запись", false);
+    return;
+  }
+
+  const confirmed = confirm(`Удалить пользователя ${email}?`);
+  if (!confirmed) return;
+
+  try {
+    const r = await fetch(`/api/v1/superadmin/users/${encodeURIComponent(email)}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    if (!r.ok) {
+      if (r.status === 404) {
+        showToast("Пользователь не найден или недоступен для удаления", false);
+      } else {
+        showToast(`Ошибка удаления (${r.status})`, false);
+      }
+      return;
+    }
+
+    showToast("Пользователь удалён");
+
+    // убираем пользователя из списка и перерисовываем таблицу
+    rawUsers = rawUsers.filter((u) => u.email !== email);
+    render();
+  } catch (err) {
+    console.error(err);
+    showToast("Не удалось удалить пользователя", false);
+  }
+}
+
+
 document.addEventListener("change", async (e) => {
   const t = e.target;
   if (t.classList.contains("sa-vip") || t.classList.contains("sa-admin")) {
@@ -160,8 +225,12 @@ document.addEventListener("change", async (e) => {
 
 document.addEventListener("click", async (e) => {
   const t = e.target;
+
   if (t.classList.contains("sa-refresh")) {
     await fetchUsers();
+  } else if (t.classList.contains("sa-delete")) {
+    const email = t.getAttribute("data-email");
+    await deleteUserByEmail(email);
   }
 });
 
