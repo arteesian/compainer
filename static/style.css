@@ -1132,7 +1132,7 @@ input[type="checkbox"] {
   outline: 1px solid rgba(247, 182, 3, 0.4);
 }
 
-.sa-refresh {
+.sa-refresh, .sa-delete {
   cursor: pointer;
   display:inline-block;  
   transition: transform .2s ease, color .2s ease;
@@ -1146,6 +1146,11 @@ input[type="checkbox"] {
 .sa-refresh:hover {
   transform: rotate(120deg) scale(1.2);
   color: #f7b603;
+}
+
+.sa-delete:hover {
+  transform: rotate(90deg) scale(1.2);
+  color: #FF5A65;
 }
 
 .badge {
