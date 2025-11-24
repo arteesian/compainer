@@ -68,7 +68,7 @@ function render() {
   const list = rawUsers.filter(u => !q || u.email.toLowerCase().includes(q));
   viewUsers = list;
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="padding:12px;">Ничего не найдено</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:12px;">Ничего не найдено</td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(u => {
@@ -78,9 +78,16 @@ function render() {
     const vipBox = `<input type="checkbox" class="sa-vip" data-email="${u.email}" ${u.is_vip ? "checked" : ""} ${self ? "disabled" : ""}>`;
     const admBox = `<input type="checkbox" class="sa-admin" data-email="${u.email}" ${u.is_admin ? "checked" : ""} ${self ? "disabled" : ""}>`;
     const actBtn = `<button class="sa-refresh" data-email="${u.email}">↻</button>`;
+    const fmt = s => {
+      const d = new Date(s);
+      const p = n => String(n).padStart(2, '0'); // паддинг
+      return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ` +
+            `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+    };
     return `
       <tr>
         <td style="padding:10px;">${u.email}</td>
+        <td style="padding:10px;">${fmt(u.last_activity_at) ?? "-"}</td>
         <td style="padding:10px;"><span class="badge role-${role}">${role.toUpperCase()}</span></td>
         <td style="padding:10px;">${vipBox}</td>
         <td style="padding:10px;">${admBox}</td>
@@ -93,10 +100,10 @@ async function fetchUsers() {
   const params = new URLSearchParams();
   const rf = roleFilter.value;
   if (rf) params.set("role", rf);
-  tbody.innerHTML = `<tr><td colspan="5" style="padding:12px;">Загрузка…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6" style="padding:12px;">Загрузка…</td></tr>`;
   const r = await fetch(`/api/v1/superadmin/users/?${params.toString()}`, { credentials: "include" });
   if (!r.ok) {
-    tbody.innerHTML = `<tr><td colspan="5" style="padding:12px;color:crimson;">Ошибка загрузки (${r.status})</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:12px;color:crimson;">Ошибка загрузки (${r.status})</td></tr>`;
     return;
   }
   rawUsers = await r.json(); // [{email,is_vip,is_admin}]
