@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     row.innerHTML = `
       <div class="general-actions-table-cell-name">
-        <a class="general-action-link" href="${a.link ? esc(a.link) : '#'}" ${a.link ? `target="_blank" rel="noopener"` : ''} aria-label="${a.name}">${a.name.length <= 17 ? esc(a.name) : esc(a.name.slice(0, 17)+'...')}</a>
+        <a class="general-action-link" href="${a.link ? esc(a.link) : '#'}" ${a.link ? `target="_blank" rel="noopener"` : ''} aria-label="${a.name}">${a.name.length <= 17 ? esc(a.name) : esc(a.name.slice(0, 17)+'...')}${(Date.now() - new Date(a.creation_time).getTime()) < 3 * 24 * 60 * 60 * 1000 ? ' <span class="new_action">NEW</span>' : ''}</a>
       </div>
       <div class="general-actions-table-cell-macros">
       ${!a.answer 
