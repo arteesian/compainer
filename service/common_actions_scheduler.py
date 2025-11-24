@@ -46,8 +46,8 @@ async def _run_once() -> int:
         return result.rowcount or 0
 
 async def start_common_actions_scheduler(
-    # устанавливаем время обновления 00:05 МСК (UTC+3)
-    run_time: time = time(hour=21, minute=5),
+    # устанавливаем время обновления 03:05 МСК (UTC+3)
+    run_time: time = time(hour=0, minute=5),
 ) -> None:
     logger.info("loop started, run_time=%s", run_time)
 
