@@ -24,3 +24,18 @@ async def update_user_role(
     if not await UserService.update_user_role(update_data):
         raise HTTPException(404, "User not found")
     return {"status": "updated", "email": update_data.email}
+
+
+@superadmin_router.delete("/{email}", response_model=dict)
+async def delete_user(
+    email: str,
+    superadmin: dict = Depends(require_role("superadmin"))
+):
+    """
+    Удаление пользователя из таблицы users по email.
+    Доступно только супер-админу.
+    """
+    if not await UserService.delete_user(email):
+        raise HTTPException(404, "User not found")
+
+    return {"status": "deleted", "email": email}

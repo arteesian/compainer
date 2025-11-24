@@ -19,3 +19,7 @@ class UserService:
             is_admin=update_data.is_admin,
             is_vip=update_data.is_vip
         )
+
+    @staticmethod
+    async def delete_user(email: str) -> bool:
+        return await UserRepository.delete_user(email)

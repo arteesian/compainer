@@ -90,3 +90,21 @@ class UserRepository:
 
             result = await session.execute(query)
             return result.scalars().all()
+
+    @staticmethod
+    async def delete_user(email: str) -> bool:
+        async with AsyncSessionLocal() as session:
+            try:
+                result = await session.execute(select(User).where(User.email == email))
+                user = result.scalar_one_or_none()
+                if not user or user.is_superadmin:
+                    return False
+
+                await session.delete(user)
+                await session.commit()
+                return True
+
+            except SQLAlchemyError as e:
+                await session.rollback()
+                logger.error(f"Failed to delete user {email}: {e}")
+                return False
