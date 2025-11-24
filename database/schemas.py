@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
     email: str
     is_vip: bool
     is_admin: bool
+    last_activity_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

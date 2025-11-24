@@ -42,6 +42,7 @@ class User(Base):
     is_vip = Column(Boolean, default=False, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
     is_superadmin = Column(Boolean, default=False, nullable=False)
+    last_activity_at = Column(DateTime(timezone=True), nullable=True)
 
     @property
     def role(self) -> list[str]:

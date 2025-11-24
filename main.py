@@ -19,6 +19,7 @@ from routes.personal import personal_router
 from routes.sorry_bonus import sorry_bonus_router
 from service.auth import get_current_user_optional
 from service.auth import require_role
+from database.user_repo import UserRepository
 import asyncio
 from contextlib import asynccontextmanager, suppress
 import logging
@@ -31,9 +32,10 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 
+logger = logging.getLogger(__name__)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger = logging.getLogger(__name__)
     logger.info("lifespan: starting common_actions_scheduler task")
     task = asyncio.create_task(start_common_actions_scheduler())
     try:
@@ -152,6 +154,20 @@ def create_app():
         # только суперадмин увидит страницу; иначе 403
         return app.state.templates.TemplateResponse("superadmin.html", {"request": request, "user": superadmin})
 
+    @app.middleware("http")
+    async def user_activity_middleware(request: Request, call_next):
+        response = await call_next(request)
+        user = get_current_user_optional(request)
+
+        if user and isinstance(user, dict):
+            email = user.get("email")
+            if email:
+                try:
+                    await UserRepository.update_user_last_activity(email)
+                except Exception as e:
+                    logger.error(f"Error updating last activity: {e}")
+
+        return response
 
     app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
     templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
