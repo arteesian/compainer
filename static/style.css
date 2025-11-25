@@ -1987,3 +1987,23 @@ h2[id="swal2-title"], div[id="swal2-html-container"] {
   border-radius: 3px;
   font-weight: bold;
 }
+
+.superadmin-export {
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid #757575;
+  font-family: Inter;
+  font-weight: bold;
+  background: radial-gradient(
+      58.43% 103.88% at 56.74% 50%,
+      #f7b603 20%,
+      #fff89b 100%
+  );
+  margin-left: 15px;
+  transition: all 0.3s ease;
+}
+
+.superadmin-export:hover {
+  transform: scale(1.06);
+}

@@ -418,6 +418,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!me) return;
 
   //ну если залогинен:
+
+  const exportBtn = document.getElementById('sa-export-btn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      // простой GET-запрос на ручку экспорта
+      // FastAPI-роут у тебя: /api/v1/superadmin/users/export
+      window.location.href = '/api/v1/superadmin/users/export';
+    });
+  }
+
   // ЭЛЕМЕНТЫ МЕНЮ ПРОФИЛЯ
   const profileBtn   = document.querySelector('.profile-button-super-admin');
   const profileMenu  = document.getElementById('profile-menu');
