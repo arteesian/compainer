@@ -10,7 +10,12 @@ class WagerRepository:
         self.session = session
 
     async def get_bonuses_by_user_id(self, user_id: str) -> List[UserActionBonus]:
-        stmt = select(UserActionBonus).where(UserActionBonus.userid == int(user_id))
+        stmt = (
+                select(UserActionBonus)
+                .where(UserActionBonus.userid == int(user_id))
+                .order_by(UserActionBonus.date_start.desc())
+                .limit(1)
+        )
         result = await self.session.execute(stmt)
         bonuses = result.scalars().all()
 
