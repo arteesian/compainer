@@ -116,7 +116,13 @@ class SecureAPIClient:
         if not SecureAPIClient.FSID_TOKEN:
             SecureAPIClient.FSID_TOKEN = await self._get_access_token()
 
-        request_kwargs = {"url": f"{self.base_url}{endpoint}"}
+        # поддержка абсолютных URL
+        if endpoint.startswith("http://") or endpoint.startswith("https://"):
+            url = endpoint
+        else:
+            url = f"{self.base_url}{endpoint}"
+
+        request_kwargs = {"url": url}
 
         if method.upper() == "GET":
             if base_payload:
@@ -225,7 +231,6 @@ class SecureAPIClient:
             base_payload=base_payload
         )
 
-
     async def get_client_information(self,
                                      client_id: str) -> Dict[str, Any]:
         base_payload = {
@@ -235,13 +240,50 @@ class SecureAPIClient:
             "clientId": client_id
         }
 
-        logger.info(f"Расчёт бонус-wager-info для user_id={client_id}")
+        logger.info(f"Получение информации по клиенту с user_id={client_id}")
         return await self._make_request_with_token(
             endpoint="/api/backoffice/client/information",
             method="post",
             base_payload=base_payload
         )
 
+    async def get_client_actions(self, client_id: str) -> Dict[str, Any]:
+        base_payload = {
+            "login": "csat",
+            "userId": "9776",
+            "userLang": "ru",
+            "clientId": client_id
+        }
+
+        logger.info(f"Получение акций по клиенту с user_id={client_id}")
+        return await self._make_request_with_token(
+            endpoint="/api/loyalty/getClientLoyaltyParticipationHistory",
+            method="post",
+            base_payload=base_payload
+        )
+
+    async def get_action_clients_progresses(
+            self,
+            client_id: str,
+            action_id: int,
+    ) -> Dict[str, Any]:
+        base_payload = {
+            "actionId": str(action_id),
+            "clientIdList": [str(client_id)],
+            "login": "csat",
+            "userId": "9776",
+            "userLang": "ru",
+        }
+
+        logger.info(
+            f"Получение прогресса по акции action_id={action_id} для client_id={client_id}"
+        )
+
+        return await self._make_request_with_token(
+            endpoint="/api/loyalty/getActionClientsProgresses",
+            method="post",
+            base_payload=base_payload,
+        )
 
 class TokenExpiredError(Exception):
     pass
