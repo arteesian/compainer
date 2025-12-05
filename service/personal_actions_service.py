@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.actions_flow_repo import ActionsFlowRepository
 from database.models import PersonalPromo
 from service.api_client_service import SecureAPIClient, logger
-from service.backoffice_utils import has_bad_statuses, has_score_and_bh_status
+from service.backoffice_utils import has_bad_statuses, has_score_and_bh_status, is_vip
 from service.exceptions import ExternalAPIError, UserNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -91,13 +91,14 @@ class PersonalActionsService:
         client_id: int,
         offset: int = 0,
         limit: int = 10,
+        allow_vip_clients: bool = False,
     ) -> PersonalActionsPage:
         """
         Главный публичный метод. Его потом будет дёргать роутер.
         """
 
         # Проверяем, что клиент существует и не имеет негативных статусов
-        await self._ensure_client_allowed(client_id)
+        await self._ensure_client_allowed(client_id, allow_vip_clients=allow_vip_clients)
 
         now = datetime.now(timezone.utc)
         finished_cutoff = now - timedelta(days=self.days_after_finish)
@@ -191,12 +192,17 @@ class PersonalActionsService:
 
     # ======================= внутренние хелперы =======================
 
-    async def _ensure_client_allowed(self, client_id: int) -> None:
+    async def _ensure_client_allowed(
+            self,
+            client_id: int,
+            allow_vip_clients: bool,
+    ) -> None:
         """
         1) Проверяем, что client_id валиден по формату (ровно 8 цифр).
         2) Проверяем, что клиент существует в БО (get_client_information).
         3) Если счёт отсутствует — поднимаем UserNotFoundError.
-        4) Если у клиента негативные статусы — поднимаем ExternalAPIError 400.
+        4) Если клиент VIP, а роль пользователя не позволяет — 400.
+        5) Если у клиента негативные статусы — поднимаем ExternalAPIError 400.
         """
 
         client_id_str = str(client_id)
@@ -223,6 +229,13 @@ class PersonalActionsService:
 
             # Любая другая ошибка БО — прокидываем как есть
             raise
+
+        if is_vip(client_info) and not allow_vip_clients:
+            raise ExternalAPIError(
+                message="Клиент относится к VIP-сегменту. Просмотр его персональных акций "
+                        "недоступен для вашей роли.",
+                status_code=400,
+            )
 
         if has_bad_statuses(client_info):
             # при негативных статусах клиенту недоступны бонусы/акции

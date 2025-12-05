@@ -31,10 +31,8 @@ def get_secure_api_client_dep() -> SecureAPIClient:
         max_retries=2,
     )
 
-
-
 def get_personal_actions_service_dep(
-    session: AsyncSession = Depends(get_actions_flow_session),  # 👈 тут главное изменение
+    session: AsyncSession = Depends(get_actions_flow_session),
     api_client: SecureAPIClient = Depends(get_secure_api_client_dep),
 ) -> PersonalActionsService:
     return PersonalActionsService(session=session, api_client=api_client)
@@ -51,11 +49,23 @@ async def get_personal_actions_endpoint(
     service: PersonalActionsService = Depends(get_personal_actions_service_dep),
     user: dict = Depends(get_current_user),
 ):
+    # Определяем, можно ли этому пользователю смотреть VIP-клиенто
+    roles = user.get("role", [])
+    if isinstance(roles, str):
+        roles_list = [roles]
+    else:
+        roles_list = roles
+
+    allow_vip_clients = any(
+        r in ["admin", "superadmin", "vip"] for r in roles_list
+    )
+
     try:
         page = await service.get_personal_actions(
             client_id=client_id,
             offset=offset,
             limit=limit,
+            allow_vip_clients=allow_vip_clients,
         )
     except UserNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
