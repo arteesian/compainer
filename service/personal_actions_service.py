@@ -42,9 +42,9 @@ class PersonalAction:
     start_time: Optional[datetime] = None
     finish_time: Optional[datetime] = None
 
-    # инфа по отыгрышу (если понадобится)
+    # инфа по обороту
+    bet_needed: Optional[bool] = None
     turnover_remaining: Optional[float] = None
-    #turnover_overall: Optional[float] = None
 
 
 @dataclass
@@ -158,8 +158,8 @@ class PersonalActionsService:
             self._map_promo_to_available_action(promo) for promo in available_promos
         ]
 
-        # Дотягиваем инфу по отыгрышу для активных акций
-        await self._enrich_with_turnover(client_id, active_actions)
+        # Дотягиваем инфу по обороту для активных акций
+        await self._enrich_with_turnover(client_id, active_actions + finished_actions)
 
         # Склеиваем и сортируем: AVAILABLE -> ACTIVE -> FINISHED
         all_actions: List[PersonalAction] = (
@@ -355,18 +355,21 @@ class PersonalActionsService:
                 )
                 continue
 
+            bet_needed = latest_obj.get("betNeeded")
+            if bet_needed is None:
+                action.bet_needed = None
+            else:
+                action.bet_needed = bool(bet_needed)
+
             logger.info(f"Получили данные по акции {latest_obj.get('action')} для client_id={client_id}")
 
             if not latest_obj.get("betNeeded"):
-                logger.info(
-                    f"Для client_id={client_id}, action_id={action.action_id} betNeeded=False — отыгрыш по ставкам не нужен"
-                )
+                continue
+
+            if action.status != PersonalActionStatus.ACTIVE:
                 continue
 
             remaining_raw = latest_obj.get("remainingBetsAmount")
-            logger.info(
-                f"Получили remainingBetsAmount={remaining_raw} для client_id={client_id}, action_id={action.action_id}"
-            )
 
             try:
                 remaining_int = int(remaining_raw)

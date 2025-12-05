@@ -82,8 +82,8 @@ async def get_personal_actions_endpoint(
             status=_map_status_to_enum(a.status),
             start_time=a.start_time,
             finish_time=a.finish_time,
+            bet_needed=a.bet_needed,
             turnover_remaining=a.turnover_remaining,
-            #turnover_overall=a.turnover_overall,
         )
         for a in page.items
     ]

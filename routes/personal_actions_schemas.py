@@ -21,8 +21,8 @@ class PersonalActionOut(BaseModel):
     start_time: Optional[datetime] = None
     finish_time: Optional[datetime] = None
 
+    bet_needed: Optional[bool] = None
     turnover_remaining: Optional[float] = None
-    #turnover_overall: Optional[float] = None
 
     class Config:
         orm_mode = False
