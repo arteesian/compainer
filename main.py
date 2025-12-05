@@ -50,7 +50,7 @@ def create_app():
     app = FastAPI(title="Pari Compainer",
                   description="Pari Actions in one place",
                   debug=True,
-                  docs_url=None, redoc_url=None, openapi_url=None,
+                  #docs_url=None, redoc_url=None, openapi_url=None,
                   lifespan=lifespan)
 
     @app.exception_handler(RequestValidationError)
@@ -114,7 +114,7 @@ def create_app():
         return app.state.templates.TemplateResponse("home.html", {"request": request})
 
     @app.get("/personal", response_class=HTMLResponse)
-    async def wager(request: Request):
+    async def personal(request: Request):
         return app.state.templates.TemplateResponse("personal.html", {"request": request})
     
     @app.get("/wager", response_class=HTMLResponse)
@@ -136,6 +136,10 @@ def create_app():
     @app.get("/vip_home", response_class=HTMLResponse)
     async def vip_home(request: Request, user: dict = Depends(require_role("vip"))):
         return app.state.templates.TemplateResponse("vip_home.html", {"request": request, "role": user.get("role")})
+    
+    @app.get("/vip_personal", response_class=HTMLResponse)
+    async def vip_personal(request: Request, user: dict = Depends(require_role("vip"))):
+        return app.state.templates.TemplateResponse("vip_personal.html", {"request": request, "role": user.get("role")})
     
     @app.get("/admin_home", response_class=HTMLResponse)
     async def admin_home(request: Request, user: dict = Depends(require_role("admin"))):

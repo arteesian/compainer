@@ -301,7 +301,7 @@ body {
   border: 1px solid #2E2E2E;
 }
 
-.events-smm, #personal-actions {
+.events-smm {
   filter: brightness(.85) saturate(.9) blur(1.2px) !important;
   will-change: filter, transform !important;
 }
@@ -488,6 +488,16 @@ input:focus {
   text-align: center;
 }
 
+.personal-actions-columns-macros, .personal-actions-columns-time, .personal-actions-columns-rules, .personal-actions-columns-status {
+  width: 250px;
+  text-align: center;
+}
+
+.personal-actions-columns-name {
+  width: 680px;
+  text-align: center;
+}
+
 .general-actions-table-row {
   display: flex;
   flex-direction: row;
@@ -498,7 +508,22 @@ input:focus {
   font-weight: 500;  
 }
 
+.personal-actions-table-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  text-align: center;
+  height: 62px;
+  padding: 0 50px;
+  font-weight: 500;  
+}
+
+
 .general-actions-table-row:not(:last-child) {
+  border-bottom: 1px solid #262627;
+}
+
+.personal-actions-table-row:not(:last-child) {
   border-bottom: 1px solid #262627;
 }
 
@@ -506,7 +531,22 @@ input:focus {
   width: 233px;
 }
 
+.personal-actions-table-cell-macros, .personal-actions-table-cell-time, .personal-actions-table-cell-rules, .personal-actions-table-cell-status {
+  width: 250px;
+}
+
+.personal-actions-table-cell-name {
+  width: 680px;
+}
+
 .general-actions-table-cell-name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.personal-actions-table-cell-name {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -581,7 +621,18 @@ input:focus {
   transition: transform 0.2s ease;
 }
 
+.personal-actions-table-cell-macros button, .personal-actions-table-cell-rules button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
 .general-actions-table-cell-macros button:hover, .general-actions-table-cell-rules button:hover {
+  transform: scale(1.1);
+}
+
+.personal-actions-table-cell-macros button:hover, .personal-actions-table-cell-rules button:hover {
   transform: scale(1.1);
 }
 
@@ -589,7 +640,22 @@ input:focus {
   color: #AEB9E1;
 }
 
+.personal-actions-table-cell-rules , .personal-actions-table-cell-time, .personal-actions-table-cell-list {
+  color: #AEB9E1;
+}
+
 .general-actions-table-cell-rules button, .regular-action-players{
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #AEB9E1;
+  font-weight: 500;
+  font-family: Inter;
+  text-decoration: none;
+}
+
+.personal-actions-table-cell-rules button {
   background: none;
   border: none;
   cursor: pointer;
@@ -2006,4 +2072,8 @@ h2[id="swal2-title"], div[id="swal2-html-container"] {
 
 .superadmin-export:hover {
   transform: scale(1.06);
+}
+
+.personal-action-link {
+  color: white;
 }

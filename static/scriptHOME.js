@@ -129,10 +129,14 @@ function backToProfile() {
 }
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ПЕРСОНАЛЬНЫХ АКЦИЙ
-// document.getElementById('personal-actions').addEventListener('click', () => {
-//   window.location.href = '/personal';
-// });
-
+document.getElementById('personal-actions').addEventListener('click', () => {
+  const role = window.CURRENT_USER;
+  if (hasRole(role, "vip")) {
+        window.location.href = '/vip_personal';
+    } else {
+      window.location.href = '/personal';
+    }
+});
 
 // ССЫЛКА ПЕРЕХОД НА СТРАНИЦУ ОТЫГРЫША БОНУСА
 document.getElementById('bonus-wager').addEventListener('click', () => {

@@ -160,10 +160,6 @@ document.getElementById('general-actions').addEventListener('click', () => {
     }
 });
 
-document.getElementById('general-actions').addEventListener('click', () => {
-  window.location.href = '/home';
-});
-
 document.addEventListener('DOMContentLoaded', async () => {
   //сразу проверка если не залогинен то давай до свидания
   const me = await checkAuth({ redirectIfUnauthed: true });
@@ -171,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   //ну если залогинен:
   // ЭЛЕМЕНТЫ МЕНЮ ПРОФИЛЯ
-  const profileBtn   = document.querySelector('.profile-button');
+  const profileBtn   = document.querySelector('.profile-button-vip');
   const profileMenu  = document.getElementById('profile-menu');
   const adminItem    = document.getElementById('profile-admin');
   const logoutItem   = document.getElementById('profile-logout');
@@ -341,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="ga-modal-close" title="Закрыть">×</button>
         <div class="ga-modal-content"></div>
         <div class="ga-modal-copy-block">
-          <button class="ga-modal-copy hidden">Скопировать</button>
+          <button class="ga-modal-copy-vip hidden">Скопировать</button>
         </div>
       </div>
     `;
@@ -357,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    const copyBtn = wrap.querySelector('.ga-modal-copy');
+    const copyBtn = wrap.querySelector('.ga-modal-copy-vip');
     copyBtn.addEventListener('click', async () => {
       const contentEl = wrap.querySelector('.ga-modal-content');
       const text = contentEl?.innerText || '';
@@ -379,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function openAnswerModal(text) {
     const wrap = ensureModal();
     const contentEl = wrap.querySelector('.ga-modal-content');
-    const copyBtn   = wrap.querySelector('.ga-modal-copy');
+    const copyBtn   = wrap.querySelector('.ga-modal-copy-vip');
 
     contentEl.textContent = text || 'Нет текста для ответа';
     copyBtn.classList.toggle('hidden', !text);
@@ -448,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tableEl.appendChild(row);
 
     if (topbarCountEl) {
-      topbarCountEl.innerHTML = `<span class="pagination-general-for-user">0-0</span> из 0`;
+      topbarCountEl.innerHTML = `<span class="pagination-general-for-vip">0-0</span> из 0`;
     }
 
     if (arrowLeftEl)  arrowLeftEl.disabled  = true;
@@ -469,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const end   = state.offset + actions.length;
     if (topbarCountEl) {
       topbarCountEl.innerHTML =
-        `<span class="pagination-general-for-user">${start}-${end}</span> из ${state.total}`;
+        `<span class="pagination-general-for-vip">${start}-${end}</span> из ${state.total}`;
     }
 
     if (arrowLeftEl) {
