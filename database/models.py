@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 
-from sqlalchemy import DateTime, BigInteger, String, Column, Integer, ForeignKey, Enum as SQLEnum, func
+from sqlalchemy import DateTime, BigInteger, String, Column, Integer, ForeignKey, Enum as SQLEnum, func, Text
 from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import Boolean
 
@@ -113,4 +113,185 @@ class QuestionAnswer(Base):
     action: Mapped["CommonAction"] = relationship(
         back_populates="questions_answers",
         foreign_keys="[QuestionAnswer.action_id]"
+    )
+
+# Модели БД actions_flow для персональных акций
+
+class DocumentEntry(Base):
+    """
+    Таблица document_entries
+
+    Поля:
+    - id      (PK)
+    - name    (в ней хранится actionId)
+    """
+    __tablename__ = "document_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+
+    # связи
+    accounts: Mapped[List["Account"]] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan",
+    )
+
+class Account(Base):
+    """
+    Таблица accounts
+
+    Поля:
+    - id
+    - account_number  (сюда пишется clientId)
+    - document_id     (segmentId -> FK на document_entries.id)
+    """
+    __tablename__ = "accounts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    account_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    document_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("document_entries.id"),
+        nullable=True,
+        index=True,
+    )
+
+    document: Mapped[Optional["DocumentEntry"]] = relationship(
+        back_populates="accounts",
+    )
+
+class PersonalPromo(Base):
+    """
+    personal_promos
+
+    id          serial4      PK
+    action_id   int4         NOT NULL
+    promo_id    varchar      NOT NULL
+    start_time  int8         NOT NULL
+    finish_time int8         NOT NULL
+    state       int4         NOT NULL
+    link        varchar      NOT NULL
+    message     varchar      (NULLABLE)
+    created_at  timestamp    NOT NULL
+    updated_at  timestamp    NOT NULL
+    """
+    __tablename__ = "personal_promos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    action_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    promo_id: Mapped[str] = mapped_column(String, nullable=False)
+
+    # int8 → BigInteger (обычно это unix-timestamp или похожее число)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+    state: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+
+    link: Mapped[str] = mapped_column(String, nullable=False)
+    message: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+class WelcomePromo(Base):
+    """
+    Таблица welcome_promos
+    (первый шаг велкома, есть ссылка и текст).
+    """
+    __tablename__ = "welcome_promos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    link: Mapped[str] = mapped_column(String(255), nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+class WelcomeStep2(Base):
+    """
+    Таблица welcome_step_2 — второй этап велкома.
+    """
+    __tablename__ = "welcome_step_2"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+class WelcomeStep3(Base):
+    """
+    Таблица welcome_step_3 — третий этап велкома.
+    """
+    __tablename__ = "welcome_step_3"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+class WelcomeStep4(Base):
+    """
+    Таблица welcome_step_4 — четвертый этап велкома.
+    """
+    __tablename__ = "welcome_step_4"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+class WelcomeStep5(Base):
+    """
+    Таблица welcome_step_5 — пятый этап велкома.
+    """
+    __tablename__ = "welcome_step_5"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
     )
