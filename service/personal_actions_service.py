@@ -166,6 +166,21 @@ class PersonalActionsService:
             available_actions + active_actions + finished_actions
         )
 
+        # Дотягиваем описание/ссылку из всех промо-таблиц (personal + welcome)
+        await self._enrich_actions_from_db(all_actions)
+
+        # один запрос в БД по всем id
+        action_ids = {a.action_id for a in all_actions if a.action_id}
+        promos: List[PersonalPromo] = await self.repo.get_personal_promos_by_action_ids(
+            list(action_ids)
+        )
+        promos_by_action_id: Dict[int, PersonalPromo] = {
+            promo.action_id: promo for promo in promos
+        }
+
+        # Дотягиваем описание/ссылку из всех промо-таблиц (personal + welcome)
+        self._enrich_actions_from_promos(all_actions, promos_by_action_id)
+
         status_order = {
             PersonalActionStatus.AVAILABLE: 1,
             PersonalActionStatus.ACTIVE: 2,
@@ -312,8 +327,8 @@ class PersonalActionsService:
         return PersonalAction(
             action_id=promo.action_id,
             name=promo.promo_id,
-            description=promo.message,
-            link=promo.link,
+            description=None,
+            link=None,
             status=PersonalActionStatus.AVAILABLE,
             start_time=start_time,
             finish_time=finish_time,
@@ -463,3 +478,103 @@ class PersonalActionsService:
             latest.get("remainingBetsAmount"),
         )
         return latest
+
+
+    def _enrich_actions_from_promos(
+            self,
+            actions: List[PersonalAction],
+            promos_by_action_id: Dict[int, PersonalPromo],
+    ) -> None:
+        """
+        Для любых персональных акций (available / active / finished)
+        подмешиваем описание и ссылку из таблицы personal_promos,
+        если там есть запись с таким action_id.
+
+        Логика:
+          - description <- promo.message (если оно есть)
+          - link        <- promo.link    (если оно есть)
+        """
+        if not actions:
+            return
+
+        for action in actions:
+            promo = promos_by_action_id.get(action.action_id)
+            if not promo:
+                continue
+
+            msg = getattr(promo, "message", None)
+            if msg:
+                action.description = msg
+
+            link = getattr(promo, "link", None)
+            if link:
+                action.link = link
+
+    async def _enrich_actions_from_db(
+        self,
+        actions: List[PersonalAction],
+    ) -> None:
+        """
+        Для любых персональных акций (available / active / finished)
+        подтягиваем описание/ссылку из БД:
+
+        - personal_promos
+        - welcome_promos
+        - welcome_step_2/3/4/5
+
+        по action_id.
+        """
+        if not actions:
+            return
+
+        action_ids = {a.action_id for a in actions if a.action_id}
+        if not action_ids:
+            return
+
+        action_ids_list = list(action_ids)
+        # 1) обычные персональные промо
+        personal_promos = await self.repo.get_personal_promos_by_action_ids(action_ids_list)
+
+        # 2) welcome первый шаг
+        welcome_promos = await self.repo.get_welcome_promos_by_action_ids(action_ids_list)
+
+        # 3) welcome шаги 2–5
+        welcome_steps = await self.repo.get_welcome_steps_by_action_ids(action_ids_list)
+
+        # Собираем словарь action_id -> {message, link}
+        promo_data: Dict[int, Dict[str, Optional[str]]] = {}
+
+        def put(obj: Any, has_link: bool = False):
+            aid = getattr(obj, "action_id", None)
+            if not aid:
+                return
+
+            msg = getattr(obj, "message", None)
+            link = getattr(obj, "link", None) if has_link else None
+
+            current = promo_data.setdefault(aid, {"message": None, "link": None})
+            if msg:
+                current["message"] = msg
+            if link:
+                current["link"] = link
+
+        for p in personal_promos:
+            put(p, has_link=True)
+        for w in welcome_promos:
+            put(w, has_link=True)
+        for ws in welcome_steps:
+            put(ws, has_link=False)
+
+        # Применяем к акциям
+        for action in actions:
+            data = promo_data.get(action.action_id)
+            if not data:
+                continue
+
+            msg = data.get("message")
+            link = data.get("link")
+
+            if msg and not action.description:
+                action.description = msg
+            if link and not action.link:
+                action.link = link
