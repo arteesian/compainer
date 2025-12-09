@@ -193,3 +193,105 @@ class PersonalPromo(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+class WelcomePromo(Base):
+    """
+    Таблица welcome_promos
+    (первый шаг велкома, есть ссылка и текст).
+    """
+    __tablename__ = "welcome_promos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    link: Mapped[str] = mapped_column(String(255), nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+class WelcomeStep2(Base):
+    """
+    Таблица welcome_step_2 — второй этап велкома.
+    """
+    __tablename__ = "welcome_step_2"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+class WelcomeStep3(Base):
+    """
+    Таблица welcome_step_3 — третий этап велкома.
+    """
+    __tablename__ = "welcome_step_3"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+class WelcomeStep4(Base):
+    """
+    Таблица welcome_step_4 — четвертый этап велкома.
+    """
+    __tablename__ = "welcome_step_4"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+class WelcomeStep5(Base):
+    """
+    Таблица welcome_step_5 — пятый этап велкома.
+    """
+    __tablename__ = "welcome_step_5"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    action_id: Mapped[int] = mapped_column(Integer, unique=True, index=True, nullable=False)
+    promo_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    start_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    finish_time: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    state: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )

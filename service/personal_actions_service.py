@@ -166,6 +166,9 @@ class PersonalActionsService:
             available_actions + active_actions + finished_actions
         )
 
+        # Дотягиваем описание/ссылку из всех промо-таблиц (personal + welcome)
+        await self._enrich_actions_from_db(all_actions)
+
         status_order = {
             PersonalActionStatus.AVAILABLE: 1,
             PersonalActionStatus.ACTIVE: 2,
@@ -312,8 +315,8 @@ class PersonalActionsService:
         return PersonalAction(
             action_id=promo.action_id,
             name=promo.promo_id,
-            description=promo.message,
-            link=promo.link,
+            description=None,
+            link=None,
             status=PersonalActionStatus.AVAILABLE,
             start_time=start_time,
             finish_time=finish_time,
@@ -399,6 +402,17 @@ class PersonalActionsService:
             return None
 
     @staticmethod
+    def _normalize_promo_id(promo_id: str | None) -> str:
+        if not promo_id:
+            return ""
+
+        for marker in ("_AV_", "_DV_"):
+            if marker in promo_id:
+                return promo_id.split(marker, 1)[0]
+
+        return promo_id
+
+    @staticmethod
     def _extract_latest_progress_object(
             raw: Dict[str, Any],
             action_id: int,
@@ -463,3 +477,153 @@ class PersonalActionsService:
             latest.get("remainingBetsAmount"),
         )
         return latest
+
+
+    def _enrich_actions_from_promos(
+            self,
+            actions: List[PersonalAction],
+            promos_by_action_id: Dict[int, PersonalPromo],
+    ) -> None:
+        """
+        Для любых персональных акций (available / active / finished)
+        подмешиваем описание и ссылку из таблицы personal_promos,
+        если там есть запись с таким action_id.
+
+        Логика:
+          - description <- promo.message (если оно есть)
+          - link        <- promo.link    (если оно есть)
+        """
+        if not actions:
+            return
+
+        for action in actions:
+            promo = promos_by_action_id.get(action.action_id)
+            if not promo:
+                continue
+
+            msg = getattr(promo, "message", None)
+            if msg:
+                action.description = msg
+
+            link = getattr(promo, "link", None)
+            if link:
+                action.link = link
+
+    async def _enrich_actions_from_db(
+            self,
+            actions: List[PersonalAction],
+    ) -> None:
+        """
+        Для любых персональных акций (available / active / finished)
+        подтягиваем описание/ссылку из БД:
+
+        - personal_promos (по action_id + promo_id)
+        - welcome_promos  (по “семейству” promo_id, нормализованному)
+        - welcome_step_2...5 (по action_id, только message)
+
+        Идея: для welcome-ШАГОВ берём message из step-таблицы,
+        а link — из базового welcome_promos по “семейству” promo_id.
+        """
+        if not actions:
+            return
+
+        action_ids = {a.action_id for a in actions if a.action_id}
+        promo_ids_raw = {a.name for a in actions if a.name}
+
+        if not action_ids and not promo_ids_raw:
+            return
+
+        # Нормализованные promo_id (без _AV_2/_AV_3/... и _DV_)
+        normalized_promo_ids = {
+            self._normalize_promo_id(pid)
+            for pid in promo_ids_raw
+            if pid
+        }
+
+        # 1) обычные персональные промо
+        personal_promos = await self.repo.get_personal_promos_by_action_ids(
+            list(action_ids)
+        )
+
+        # 2) welcome первый шаг (базовые велкомы)
+        welcome_promos = await self.repo.get_welcome_promos_by_promo_ids(
+            list(normalized_promo_ids)
+        )
+
+        # 3) welcome шаги 2–5
+        welcome_steps = await self.repo.get_welcome_steps_by_action_ids(
+            list(action_ids)
+        )
+
+        # --- собираем данные в два словаря ---
+        # по action_id: для персональных + welcome-ШАГОВ (сообщения + возможные ссылки)
+        data_by_action_id: dict[int, dict[str, Optional[str]]] = {}
+
+        # по нормализованному promo_id: для базовых welcome (ссылка + общий текст)
+        data_by_norm_pid: dict[str, dict[str, Optional[str]]] = {}
+
+        def put_action(aid: Optional[int], msg: Optional[str], link: Optional[str]):
+            if aid is None:
+                return
+            current = data_by_action_id.setdefault(aid, {"message": None, "link": None})
+            if msg:
+                current["message"] = msg
+            if link:
+                current["link"] = link
+
+        def put_norm_pid(promo_id: Optional[str], msg: Optional[str], link: Optional[str]):
+            if not promo_id:
+                return
+            norm = self._normalize_promo_id(promo_id)
+            if not norm:
+                return
+            current = data_by_norm_pid.setdefault(norm, {"message": None, "link": None})
+            if msg:
+                current["message"] = msg
+            if link:
+                current["link"] = link
+
+        # personal_promos: обычно non-welcome; но пусть тоже попадут в оба словаря
+        for p in personal_promos:
+            put_action(p.action_id, getattr(p, "message", None), getattr(p, "link", None))
+            put_norm_pid(getattr(p, "promo_id", None), getattr(p, "message", None), getattr(p, "link", None))
+
+        # базовые welcome: именно тут обычно лежит ссылка
+        for w in welcome_promos:
+            put_action(w.action_id, getattr(w, "message", None), getattr(w, "link", None))
+            put_norm_pid(w.promo_id, getattr(w, "message", None), getattr(w, "link", None))
+
+        # welcome steps 2–5: только message, link нет
+        for ws in welcome_steps:
+            put_action(ws.action_id, getattr(ws, "message", None), None)
+            put_norm_pid(ws.promo_id, getattr(ws, "message", None), None)
+
+        # --- применяем к акциям ---
+        for action in actions:
+            aid = action.action_id
+            promo_name = action.name
+            norm_pid = self._normalize_promo_id(promo_name) if promo_name else None
+
+            msg: Optional[str] = None
+            link: Optional[str] = None
+
+            by_aid = data_by_action_id.get(aid)
+            if by_aid:
+                msg = by_aid.get("message") or msg
+                link = by_aid.get("link") or link
+
+            if norm_pid:
+                by_pid = data_by_norm_pid.get(norm_pid)
+                if by_pid:
+                    # message: не перетираем уже заполненный step-текст,
+                    # но если его нет — берём из базового welcome
+                    msg = msg or by_pid.get("message")
+                    # link: если ещё нет — забираем из welcome_promos
+                    link = link or by_pid.get("link")
+
+            if msg:
+                action.description = msg
+            if link:
+                action.link = link
+
+

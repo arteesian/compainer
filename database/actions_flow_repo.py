@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import List, Sequence
+from typing import List, Sequence, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import or_
 
-from database.models import Account, DocumentEntry, PersonalPromo
+from database.models import Account, DocumentEntry, PersonalPromo, WelcomePromo, WelcomeStep2, WelcomeStep3, WelcomeStep4, WelcomeStep5
 
+WelcomeStepType = Union[WelcomeStep2, WelcomeStep3, WelcomeStep4, WelcomeStep5]
 
 class ActionsFlowRepository:
     """
@@ -96,7 +98,6 @@ class ActionsFlowRepository:
         promos: List[PersonalPromo] = list(result.scalars().all())
         return promos
 
-    # --- Удобный фасад для сервиса персональных акций ---
 
     async def get_personal_promos_by_client(
         self,
@@ -124,3 +125,65 @@ class ActionsFlowRepository:
 
         promos = await self.get_personal_promos_by_action_ids(action_ids)
         return promos
+
+    async def get_welcome_promos_by_action_ids(
+        self,
+        action_ids: Sequence[int],
+    ) -> List[WelcomePromo]:
+        """
+        Вернуть объекты WelcomePromo по списку action_id.
+        """
+        if not action_ids:
+            return []
+
+        stmt = select(WelcomePromo).where(WelcomePromo.action_id.in_(action_ids))
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_welcome_promos_by_promo_ids(
+        self,
+        promo_ids: Sequence[str],
+    ) -> List[WelcomePromo]:
+        """
+        Вернуть объекты WelcomePromo по списку *корневых* promo_id.
+
+        promo_ids сюда мы передаём уже нормализованные
+        (например 'Welcome_promocode_2025_f_5x1000_d_1000'),
+        поэтому ищем по шаблону "<root>%", чтобы поймать
+        базовый welcome с '_AV_1', '_DV_1' и т.п.
+        """
+        if not promo_ids:
+            return []
+
+        # убираем дубли и пустые строки
+        promo_ids = [pid for pid in set(promo_ids) if pid]
+
+        if not promo_ids:
+            return []
+
+        conditions = [WelcomePromo.promo_id.like(f"{pid}%") for pid in promo_ids]
+        stmt = select(WelcomePromo).where(or_(*conditions))
+
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+
+    async def get_welcome_steps_by_action_ids(
+        self,
+        action_ids: Sequence[int],
+    ) -> List[WelcomeStepType]:
+        """
+        Вернуть объекты welcome_step_2/3/4/5 по списку action_id.
+        """
+        if not action_ids:
+            return []
+
+        models = (WelcomeStep2, WelcomeStep3, WelcomeStep4, WelcomeStep5)
+        all_rows: List[WelcomeStepType] = []
+
+        for model in models:
+            stmt = select(model).where(model.action_id.in_(action_ids))
+            result = await self.session.execute(stmt)
+            all_rows.extend(result.scalars().all())
+
+        return all_rows
