@@ -160,10 +160,6 @@ document.getElementById('general-actions').addEventListener('click', () => {
     }
 });
 
-document.getElementById('general-actions').addEventListener('click', () => {
-  window.location.href = '/home';
-});
-
 document.addEventListener('DOMContentLoaded', async () => {
   //сразу проверка если не залогинен то давай до свидания
   const me = await checkAuth({ redirectIfUnauthed: true });
@@ -171,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   //ну если залогинен:
   // ЭЛЕМЕНТЫ МЕНЮ ПРОФИЛЯ
-  const profileBtn   = document.querySelector('.profile-button');
+  const profileBtn   = document.querySelector('.profile-button-vip');
   const profileMenu  = document.getElementById('profile-menu');
   const adminItem    = document.getElementById('profile-admin');
   const logoutItem   = document.getElementById('profile-logout');
@@ -333,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== modal для "Ответ клиенту" =====
 
-  // ===== modal для "Ответ клиенту" и сообщений =====
   function ensureModal() {
     let wrap = document.querySelector('.ga-modal-overlay');
     if (wrap) return wrap;
@@ -341,29 +336,41 @@ document.addEventListener('DOMContentLoaded', () => {
     wrap = document.createElement('div');
     wrap.className = 'ga-modal-overlay hidden';
     wrap.innerHTML = `
-        <div class="ga-modal">
-          <button class="ga-modal-close" title="Закрыть">×</button>
-          <div class="ga-modal-content"></div>
-          <div class="ga-modal-copy-block">
-            <button type="button" class="ga-modal-ok hidden">Ок</button>
-            <button type="button" class="ga-modal-copy hidden">Скопировать</button>
-          </div>
+      <div class="ga-modal">
+        <button class="ga-modal-close" title="Закрыть">×</button>
+        <div class="ga-modal-content"></div>
+        <div class="ga-modal-copy-block">
+          <button type="button" class="ga-modal-ok-vip hidden">Ок</button>
+          <button type="button" class="ga-modal-copy-vip hidden">Скопировать</button>
         </div>
-      `;
+      </div>
+    `;
     document.body.appendChild(wrap);
 
-    // закрытие по клику снаружи или по крестику
+    const closeBtn = wrap.querySelector('.ga-modal-close');
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        closeModal();
+      });
+    }
+
+    // клик по фону — закрыть
     wrap.addEventListener('click', (e) => {
-      if (
-        e.target.classList.contains('ga-modal-overlay') ||
-        e.target.classList.contains('ga-modal-close')
-      ) {
+      if (e.target === wrap) {
         closeModal();
       }
     });
 
-    const okBtn   = wrap.querySelector('.ga-modal-ok');
-    const copyBtn = wrap.querySelector('.ga-modal-copy');
+    // ESC — закрыть
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    const okBtn   = wrap.querySelector('.ga-modal-ok-vip');
+    const copyBtn = wrap.querySelector('.ga-modal-copy-vip');
 
     if (okBtn) {
       okBtn.addEventListener('click', () => {
@@ -371,20 +378,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    copyBtn.addEventListener('click', async () => {
-      const contentEl = wrap.querySelector('.ga-modal-content');
-      const text = contentEl?.innerText || '';
-      if (!text) return;
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        const contentEl = wrap.querySelector('.ga-modal-content');
+        const text = contentEl?.innerText || '';
+        if (!text) return;
 
-      try {
-        await navigator.clipboard.writeText(text);
-        const old = copyBtn.textContent;
-        copyBtn.textContent = 'Скопировано!';
-        setTimeout(() => (copyBtn.textContent = old), 900);
-      } catch {
-        alert('Не удалось скопировать :(');
-      }
-    });
+        try {
+          await navigator.clipboard.writeText(text);
+          const old = copyBtn.textContent;
+          copyBtn.textContent = 'Скопировано!';
+          setTimeout(() => (copyBtn.textContent = old), 900);
+        } catch {
+          alert('Не удалось скопировать :(');
+        }
+      });
+    }
 
     return wrap;
   }
@@ -393,12 +402,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function openAnswerModal(text) {
     const wrap = ensureModal();
     const contentEl = wrap.querySelector('.ga-modal-content');
-    const copyBtn   = wrap.querySelector('.ga-modal-copy');
-    const okBtn     = wrap.querySelector('.ga-modal-ok');
+    const copyBtn   = wrap.querySelector('.ga-modal-copy-vip');
+    const okBtn     = wrap.querySelector('.ga-modal-ok-vip');
 
     contentEl.textContent = text || 'Нет текста для ответа';
 
-    // для ответов показываем "Скопировать" и прячем "Ок"
+    // Для ответов показываем "Скопировать" и прячем "Ок"
     if (copyBtn) copyBtn.classList.toggle('hidden', !text);
     if (okBtn)   okBtn.classList.add('hidden');
 
@@ -409,17 +418,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function openInfoModal(text) {
     const wrap = ensureModal();
     const contentEl = wrap.querySelector('.ga-modal-content');
-    const copyBtn   = wrap.querySelector('.ga-modal-copy');
-    const okBtn     = wrap.querySelector('.ga-modal-ok');
+    const copyBtn   = wrap.querySelector('.ga-modal-copy-vip');
+    const okBtn     = wrap.querySelector('.ga-modal-ok-vip');
 
-    if ((text == 'Клиент относится к VIP-сегменту. Просмотр его персональных акций недоступен для вашей роли.') ||  text == 'Клиент имеет ограничения, бонусы недоступны') {
-      contentEl.innerHTML = `<div class="personal-error-msg">${text}</div>`
+    // Особые тексты — оборачиваем в див для красивого оформления
+    if (
+      text === 'Клиент относится к VIP-сегменту. Просмотр его ....' ||
+      text === 'Клиент имеет ограничения, бонусы недоступны'
+    ) {
+      contentEl.innerHTML = `<div class="personal-error-msg">${text}</div>`;
     } else {
       contentEl.textContent = text || 'Ошибка';
     }
-    
 
-    // для инфо-сообщений прячем "Скопировать" и показываем "Ок"
+    // Для инфо-сообщений прячем "Скопировать" и показываем "Ок"
     if (copyBtn) copyBtn.classList.add('hidden');
     if (okBtn)   okBtn.classList.remove('hidden');
 
@@ -488,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tableEl.appendChild(row);
 
     if (topbarCountEl) {
-      topbarCountEl.innerHTML = `<span class="pagination-general-for-user">0-0</span> из 0`;
+      topbarCountEl.innerHTML = `<span class="pagination-general-for-vip">0-0</span> из 0`;
     }
 
     if (arrowLeftEl)  arrowLeftEl.disabled  = true;
@@ -506,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     tableEl.appendChild(row);
 
-    // В правом верхнем углу вместо "1-10 из 14" будет просто "Загрузка..."
+    // В правом верхнем углу вместо "1-10 из N" будет просто "Загрузка..."
     if (topbarCountEl) {
       topbarCountEl.textContent = 'Загрузка...';
     }
@@ -515,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (arrowLeftEl)  arrowLeftEl.disabled  = true;
     if (arrowRightEl) arrowRightEl.disabled = true;
   }
+
 
   function render(actions) {
     tableEl.innerHTML = '';
@@ -530,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const end   = state.offset + actions.length;
     if (topbarCountEl) {
       topbarCountEl.innerHTML =
-        `<span class="pagination-general-for-user">${start}-${end}</span> из ${state.total}`;
+        `<span class="pagination-general-for-vip">${start}-${end}</span> из ${state.total}`;
     }
 
     if (arrowLeftEl) {
@@ -565,9 +578,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (res.status === 404) {
+      let message = 'Клиент не найден';
+      try {
+        const errData = await res.json();
+        if (errData && typeof errData.detail === 'string') {
+          message = errData.detail;
+        }
+      } catch (e) {
+        console.error('Failed to parse 404 body', e);
+      }
+
       state.total = 0;
       state.lastPageCount = 0;
-      renderEmpty('Клиент не найден');
+      openInfoModal(message);
       return;
     }
 
@@ -590,6 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderEmpty('Ошибка загрузки данных');
       return;
     }
+
 
     const data = await res.json();
     const actions = Array.isArray(data.actions) ? data.actions : [];

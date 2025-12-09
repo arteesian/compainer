@@ -4,6 +4,7 @@ from typing import List, Sequence, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import or_
 
 from database.models import Account, DocumentEntry, PersonalPromo, WelcomePromo, WelcomeStep2, WelcomeStep3, WelcomeStep4, WelcomeStep5
 
@@ -138,6 +139,34 @@ class ActionsFlowRepository:
         stmt = select(WelcomePromo).where(WelcomePromo.action_id.in_(action_ids))
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+
+    async def get_welcome_promos_by_promo_ids(
+        self,
+        promo_ids: Sequence[str],
+    ) -> List[WelcomePromo]:
+        """
+        Вернуть объекты WelcomePromo по списку *корневых* promo_id.
+
+        promo_ids сюда мы передаём уже нормализованные
+        (например 'Welcome_promocode_2025_f_5x1000_d_1000'),
+        поэтому ищем по шаблону "<root>%", чтобы поймать
+        базовый welcome с '_AV_1', '_DV_1' и т.п.
+        """
+        if not promo_ids:
+            return []
+
+        # убираем дубли и пустые строки
+        promo_ids = [pid for pid in set(promo_ids) if pid]
+
+        if not promo_ids:
+            return []
+
+        conditions = [WelcomePromo.promo_id.like(f"{pid}%") for pid in promo_ids]
+        stmt = select(WelcomePromo).where(or_(*conditions))
+
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
 
     async def get_welcome_steps_by_action_ids(
         self,

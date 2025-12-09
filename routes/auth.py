@@ -10,8 +10,8 @@ auth_router = APIRouter(tags=["auth management"])
 @auth_router.get("/auth/login/google")
 async def login_google(request: Request):
     # Редирект на Google
-    redirect_uri = "https://actions-compainer.paricorp.ru:4443/auth/callback"
-    #redirect_uri = request.url_for("auth_callback")
+    #redirect_uri = "https://actions-compainer.paricorp.ru:4443/auth/callback"
+    redirect_uri = request.url_for("auth_callback")
     return await request.app.state.oauth.google.authorize_redirect(request, redirect_uri, prompt="select_account")
 
 

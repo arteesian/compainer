@@ -15,8 +15,8 @@ from routes.auth import auth_router
 from routes.superadmin import superadmin_router
 from routes.user import user_router
 from routes.wager import router as wager_router
-from routes.personal import personal_router
 from routes.sorry_bonus import sorry_bonus_router
+from routes.personal_actions import personal_actions_router
 from service.auth import get_current_user_optional
 from service.auth import require_role
 from database.user_repo import UserRepository
@@ -50,7 +50,7 @@ def create_app():
     app = FastAPI(title="Pari Compainer",
                   description="Pari Actions in one place",
                   debug=True,
-                  docs_url=None, redoc_url=None, openapi_url=None,
+                  #docs_url=None, redoc_url=None, openapi_url=None,
                   lifespan=lifespan)
 
     @app.exception_handler(RequestValidationError)
@@ -112,10 +112,10 @@ def create_app():
     @app.get("/home", response_class=HTMLResponse)
     async def home(request: Request):
         return app.state.templates.TemplateResponse("home.html", {"request": request})
-    
-    # @app.get("/personal", response_class=HTMLResponse)
-    # async def personal(request: Request):
-    #     return app.state.templates.TemplateResponse("personal.html", {"request": request})
+
+    @app.get("/personal", response_class=HTMLResponse)
+    async def personal(request: Request):
+        return app.state.templates.TemplateResponse("personal.html", {"request": request})
     
     @app.get("/wager", response_class=HTMLResponse)
     async def wager(request: Request):
@@ -136,6 +136,10 @@ def create_app():
     @app.get("/vip_home", response_class=HTMLResponse)
     async def vip_home(request: Request, user: dict = Depends(require_role("vip"))):
         return app.state.templates.TemplateResponse("vip_home.html", {"request": request, "role": user.get("role")})
+    
+    @app.get("/vip_personal", response_class=HTMLResponse)
+    async def vip_personal(request: Request, user: dict = Depends(require_role("vip"))):
+        return app.state.templates.TemplateResponse("vip_personal.html", {"request": request, "role": user.get("role")})
     
     @app.get("/admin_home", response_class=HTMLResponse)
     async def admin_home(request: Request, user: dict = Depends(require_role("admin"))):
@@ -179,7 +183,7 @@ def create_app():
     app.include_router(user_router)
     app.include_router(auth_router)
     app.include_router(superadmin_router)
-    #app.include_router(personal_router)
+    app.include_router(personal_actions_router)
     app.include_router(sorry_bonus_router)
     app.include_router(common_actions_router)
 

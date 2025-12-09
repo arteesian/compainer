@@ -5,6 +5,15 @@ from typing import Any
 import asyncpg
 import httpx
 
+from service.backoffice_utils import (
+    has_bad_statuses,
+    is_vip,
+    get_client_name,
+    is_email_provided,
+    is_email_confirmed,
+)
+
+
 from config import settings
 from constants import EUROBONUS_10, EUROBONUS_30, EUROBONUS_50, EUROBONUS_70, EUROBONUS_100
 from service.api_client_service import SecureAPIClient, logger
@@ -53,45 +62,6 @@ class SorryBonusService:
         except Exception as e:
             print(f"Orpo db exception: {e}")
             await conn.close()
-
-    @staticmethod
-    def has_bad_statuses(client_information: dict[str, Any]) -> bool:
-        target_codes = {"84", "69", "76", "112", "96", "73", "115"}
-        restrictions_1 = ["29", "9992", "9981", "124", "120", "9998", "100000", "9986", "9984", "9991", "105", "9990"]
-        restrictions_2 = ["128", "109", "77", "139", "83", "9994", "113", "9997", "102", "9987", "104"]
-        for bo_class in client_information["response"]["list"]:
-            if bo_class["class"] == "Fon.Client.Extension":
-                if bo_class["object"]["manualRestrictions"]:
-                    if any(code in restrictions_1 for code in bo_class["object"]["manualRestrictions"]):
-                        return True
-                elif bo_class["object"]["antifraudRestrictions"]:
-                    if any(code in restrictions_2 for code in bo_class["object"]["antifraudRestrictions"]):
-                        return True
-                    else:
-                        if bo_class["object"]["antifraudRestrictions"]:
-                            for i, code in enumerate(bo_class["object"]["antifraudRestrictions"]):
-                                if code in target_codes and bo_class["object"]["antifraudRestrictionsSports"][i] == "0":
-                                    return True
-                            return False
-                        return False
-                return False
-        return False
-
-
-    @staticmethod
-    def is_vip(client_information: dict[str, Any]) -> bool:
-        for bo_class in client_information["response"]["list"]:
-            if bo_class["class"] == "Fon.Antifraud.ClientGrades":
-                if bo_class["object"]["gradeRatings"]:
-                    for client_rating in bo_class["object"]["gradeRatings"]:
-                        if client_rating["object"]["gradeType"] == "8" and client_rating["object"]["manualSubType"] in ["803", "814", "809", "807", "808"]:
-                            return True
-                        elif client_rating["object"]["gradeType"] == "25" and client_rating["object"]["manualSubType"] == "2502":
-                            return True
-                    return False
-                return False
-        return False
-
 
     @staticmethod
     def check_for_free_bets(free_bet_data: dict[str, Any]) -> bool:
@@ -261,36 +231,6 @@ class SorryBonusService:
             raise ExternalAPIError(error_msg, response.status_code)
 
     @staticmethod
-    def get_client_name(client_information: dict[str, Any]) -> str | None:
-        try:
-            for bo_class in client_information["response"]["list"]:
-                if bo_class["class"] == "Fon.Ora.Client":
-                    obj = bo_class.get("object") or {}
-                    full_fio = obj.get("fullFIO")
-
-                    fio_parts = full_fio.split()
-                    first_name = fio_parts[1] if len(fio_parts) >= 2 else None
-                    return first_name
-
-        except Exception as e:
-            logger.error(f"Ошибка получения имени клиента: {e}")
-        return None
-
-    @staticmethod
-    def is_email_provided(client_information: dict[str, Any]) -> bool:
-        for bo_class in client_information["response"]["list"]:
-            if bo_class["class"] == "Fon.Client.Extension":
-                return True if bo_class["object"]["email"] is not None else False
-        return False
-
-    @staticmethod
-    def is_email_confirmed(client_information: dict[str, Any]) -> bool:
-        for bo_class in client_information["response"]["list"]:
-            if bo_class["class"] == "Fon.Client.Extension":
-                return bo_class["object"]["emailConfirmed"]
-        return False
-
-    @staticmethod
     async def get_client_rate(business_key: int) -> str | None:
         try:
             conn = await asyncpg.connect(
@@ -316,16 +256,16 @@ class SorryBonusService:
     async def get_combined_response_euro_bonus(self, client_id):
 
         client_information = await self.api_client.get_client_information(client_id=client_id)
-        client_first_name = self.get_client_name(client_information)
-        is_email_provided = self.is_email_provided(client_information)
-        is_email_confirmed = self.is_email_confirmed(client_information)
+        client_first_name = get_client_name(client_information)
+        email_provided = is_email_provided(client_information)
+        email_confirmed = is_email_confirmed(client_information)
         client_rate = await SorryBonusService.get_client_rate(int(client_id))
 
-        if SorryBonusService.has_bad_statuses(client_information):
+        if has_bad_statuses(client_information):
             return {"client_id" : client_id,
                     "client_first_name": client_first_name,
-                    "is_email_provided": is_email_provided,
-                    "is_email_confimed": is_email_confirmed,
+                    "email_provided": email_provided,
+                    "email_confimed": email_confirmed,
                     "client_rate": client_rate,
                     "bad_state": True,
                     "data":
@@ -334,12 +274,12 @@ class SorryBonusService:
                         }
                     }
 
-        if SorryBonusService.is_vip(client_information):
+        if is_vip(client_information):
             gather_data = await asyncio.gather(SorryBonusService.vip_flow_euro_bonus(client_id), self.vip_flow_sorry_bonus(client_id))
             return {"client_id": client_id,
                     "client_first_name": client_first_name,
-                    "is_email_provided": is_email_provided,
-                    "is_email_confimed": is_email_confirmed,
+                    "email_provided": email_provided,
+                    "email_confimed": email_confirmed,
                     "client_rate": client_rate,
                     "client_type": "vip",
                     "euro_bonus": gather_data[0],
@@ -349,8 +289,8 @@ class SorryBonusService:
             sorry_bonus =  await self.normal_flow_sorry_bonus(client_id)
             return {"client_id": client_id,
                     "client_first_name": client_first_name,
-                    "is_email_provided": is_email_provided,
-                    "is_email_confimed": is_email_confirmed,
+                    "email_provided": email_provided,
+                    "email_confimed": email_confirmed,
                     "client_rate": client_rate,
                     "client_type": "normal",
                     "sorry_bonus": sorry_bonus}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Персональные акции</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/pari_logo_comp_vip.png">
+    <script>window.CURRENT_USER = { role: "{{ role|e }}" };</script>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="vip-background">
+        <div class="container">
+          <div class="navigation-panel">
+            <div class="navigation-buttons">
+              <button class="general-actions" id="general-actions">Общие акции</button>
+              <button class="personal-actions active-page-vip">Персональные акции</button>
+              <button class="bonus-wager" id="bonus-wager">Отыгрыш бонуса</button>
+              <button class="events-smm">Конкурсы в соцсетях</button>
+              <button class="tablo" id="tablo">Табло</button>
+            </div>
+            <div class="profile-panel">
+              <button class="profile-button-vip"><span class="profile-icon-vip"></span></button>
+              <div class="profile-menu hidden" id="profile-menu">
+                <button class="profile-menu-item hidden" id="profile-admin">Администрирование</button>
+                <button class="profile-menu-item" id="profile-logout">Выйти из профиля</button>
+              </div>
+              <button id="btn-superadmin" class="hidden">SUPER-ADMIN</button>
+            </div>
+          </div>
+          <div class="general-actions-panel">
+            <div class="general-actions-top-bar">
+              <div class="general-actions-top-bar-left-side">
+                <div class="general-actions-top-bar-left-side-title">Персональные акции</div>
+                <div class="general-actions-top-bar-left-side-search">
+                  <form class="personal-searchbar" action="/search" method="get" role="search">
+                    <span class="personal-search-icon" aria-hidden="true"><img src="/static/img/search_icon.png" alt="search-icon"></span>
+                    <input id="q" name="q" type="search" placeholder="Введите ID клиента и нажмите Enter" autocomplete="off">
+                  </form>
+                </div>
+                <div class="personal-actions-bad-client"><button id="personal-actions-bad-client" class="hidden">• Негативный статус</button></div>
+              </div>
+              <div class="general-actions-top-bar-right-side">1-10 из 14</div>
+            </div>
+            <div class="general-actions-columns">
+              <div class="personal-actions-columns-name">Название акции</div>
+              <div class="personal-actions-columns-macros">Ответ клиенту</div>
+              <div class="personal-actions-columns-time">Сроки проведения</div>
+              <div class="personal-actions-columns-rules">Осталось</div>
+              <div class="personal-actions-columns-status">Статус</div>
+            </div>
+            <div class="general-actions-table">
+
+            </div>
+          </div>
+          <div class="general-actions-pagination">
+            <div class="general-actions-pagination-quantity-of-pages">
+              <span class="quantity-of-pages-text">Количество акций на странице:</span>
+              <div class="quantity-of-pages-list">
+                <button type="button" class="quantity-of-pages-button"></button>
+                <ul class="quantity-of-pages-roll" hidden>
+                  <li class="amount-of-pages-selected">10</li>
+                  <li>30</li>
+                  <li>50</li>
+                </ul>
+                <input type="hidden" class="amount-of-pages-value" name="myValue" value="1">
+              </div>
+            </div>
+            <div class="general-actions-pagination-arrows">
+              <button class="pagination-arrow-left"><img src="/static/img/arrow_left_enable.png" alt="arrow_left"></button>
+              <button class="pagination-arrow-right"><img src="/static/img/arrow_right_enable.png" alt="arrow_right"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script defer src="{{ url_for('static', path='scriptPERSONALVIP.js') }}?v=12"></script>
+    <script defer src="{{ url_for('static', path='scriptACTIONS.js') }}?v=1"></script>
+  </body>
+</html>

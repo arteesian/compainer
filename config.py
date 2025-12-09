@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     ORPO_HOST: str
     ORPO_PORT: int
     ORPO_BD: str
+    ACTIONSFLOW_DB_NAME: str
     TEST_BASE_URL: str
     TELEGRAM_BOT_TOKEN: str
     TELEGRAM_COMMON_ACTIONS_CHAT_ID: str
@@ -35,6 +36,12 @@ class Settings(BaseSettings):
     def DATABASE_URL_psycopg(self):
         return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
+    @property
+    def ACTIONSFLOW_DATABASE_URL_asyncpg(self):
+        return (
+            f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.ACTIONSFLOW_DB_NAME}"
+        )
 
     model_config = SettingsConfigDict(env_file=DOTENV)
 
