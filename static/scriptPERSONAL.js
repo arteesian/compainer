@@ -296,7 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const dd   = String(d.getDate()).padStart(2, '0');
     const mm   = String(d.getMonth() + 1).padStart(2, '0');
     const yyyy = d.getFullYear();
-    return `${dd}.${mm}.${yyyy}`;
+    const hh   = String(d.getHours()).padStart(2, '0');
+    const min  = String(d.getMinutes()).padStart(2, '0');
+
+    return `${dd}.${mm}.${yyyy} ${hh}:${min}`;
   }
 
   function fmtRange(startIso, endIso) {
@@ -330,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== modal для "Ответ клиенту" =====
 
+  // ===== modal для "Ответ клиенту" и сообщений =====
   function ensureModal() {
     let wrap = document.querySelector('.ga-modal-overlay');
     if (wrap) return wrap;
@@ -337,14 +341,15 @@ document.addEventListener('DOMContentLoaded', () => {
     wrap = document.createElement('div');
     wrap.className = 'ga-modal-overlay hidden';
     wrap.innerHTML = `
-      <div class="ga-modal">
-        <button class="ga-modal-close" title="Закрыть">×</button>
-        <div class="ga-modal-content"></div>
-        <div class="ga-modal-copy-block">
-          <button class="ga-modal-copy hidden">Скопировать</button>
+        <div class="ga-modal">
+          <button class="ga-modal-close" title="Закрыть">×</button>
+          <div class="ga-modal-content"></div>
+          <div class="ga-modal-copy-block">
+            <button type="button" class="ga-modal-ok hidden">Ок</button>
+            <button type="button" class="ga-modal-copy hidden">Скопировать</button>
+          </div>
         </div>
-      </div>
-    `;
+      `;
     document.body.appendChild(wrap);
 
     // закрытие по клику снаружи или по крестику
@@ -357,7 +362,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    const okBtn   = wrap.querySelector('.ga-modal-ok');
     const copyBtn = wrap.querySelector('.ga-modal-copy');
+
+    if (okBtn) {
+      okBtn.addEventListener('click', () => {
+        closeModal();
+      });
+    }
+
     copyBtn.addEventListener('click', async () => {
       const contentEl = wrap.querySelector('.ga-modal-content');
       const text = contentEl?.innerText || '';
@@ -376,17 +389,44 @@ document.addEventListener('DOMContentLoaded', () => {
     return wrap;
   }
 
+
   function openAnswerModal(text) {
     const wrap = ensureModal();
     const contentEl = wrap.querySelector('.ga-modal-content');
     const copyBtn   = wrap.querySelector('.ga-modal-copy');
+    const okBtn     = wrap.querySelector('.ga-modal-ok');
 
     contentEl.textContent = text || 'Нет текста для ответа';
-    copyBtn.classList.toggle('hidden', !text);
+
+    // для ответов показываем "Скопировать" и прячем "Ок"
+    if (copyBtn) copyBtn.classList.toggle('hidden', !text);
+    if (okBtn)   okBtn.classList.add('hidden');
 
     wrap.classList.remove('hidden');
     document.body.classList.add('ga-modal-lock');
   }
+
+  function openInfoModal(text) {
+    const wrap = ensureModal();
+    const contentEl = wrap.querySelector('.ga-modal-content');
+    const copyBtn   = wrap.querySelector('.ga-modal-copy');
+    const okBtn     = wrap.querySelector('.ga-modal-ok');
+
+    if ((text == 'Клиент относится к VIP-сегменту. Просмотр его персональных акций недоступен для вашей роли.') ||  text == 'Клиент имеет ограничения, бонусы недоступны') {
+      contentEl.innerHTML = `<div class="personal-error-msg">${text}</div>`
+    } else {
+      contentEl.textContent = text || 'Ошибка';
+    }
+    
+
+    // для инфо-сообщений прячем "Скопировать" и показываем "Ок"
+    if (copyBtn) copyBtn.classList.add('hidden');
+    if (okBtn)   okBtn.classList.remove('hidden');
+
+    wrap.classList.remove('hidden');
+    document.body.classList.add('ga-modal-lock');
+  }
+
 
   function closeModal() {
     const wrap = document.querySelector('.ga-modal-overlay');
@@ -426,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ${rangeText}
       </div>
       <div class="personal-actions-table-cell-rules">
-        ${formatTurnover(a.turnover_remaining)}
+        ${formatTurnover(a.turnover_remaining)} ₽
       </div>
       <div class="personal-actions-table-cell-status">
         ${statusText == "• Активна" ? '<button class="general-action-status" id="general-action-status-active">• Активна</button>' : statusText == "• Завершена" ?  '<button class="general-action-status" id="general-action-status-ended">• Завершена</button>' : statusText == "• Доступна" ? '<button class="general-action-status" id="general-action-status-unavailable">• Доступна</button>': statusText}
@@ -451,6 +491,27 @@ document.addEventListener('DOMContentLoaded', () => {
       topbarCountEl.innerHTML = `<span class="pagination-general-for-user">0-0</span> из 0`;
     }
 
+    if (arrowLeftEl)  arrowLeftEl.disabled  = true;
+    if (arrowRightEl) arrowRightEl.disabled = true;
+  }
+
+  function renderLoading() {
+    tableEl.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'personal-actions-table-row';
+    row.innerHTML = `
+      <div class="personal-actions-table-cell-name" style="grid-column: 1 / -1; opacity:.7">
+        Загрузка...
+      </div>
+    `;
+    tableEl.appendChild(row);
+
+    // В правом верхнем углу вместо "1-10 из 14" будет просто "Загрузка..."
+    if (topbarCountEl) {
+      topbarCountEl.textContent = 'Загрузка...';
+    }
+
+    // На время загрузки блокируем стрелки
     if (arrowLeftEl)  arrowLeftEl.disabled  = true;
     if (arrowRightEl) arrowRightEl.disabled = true;
   }
@@ -492,6 +553,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const base = `/api/v1/personal_actions/${encodeURIComponent(state.clientId)}`;
     const url  = `${base}?offset=${state.offset}&limit=${state.limit}`;
 
+    renderLoading();
+
     let res;
     try {
       res = await fetch(url, { credentials: 'include' });
@@ -505,6 +568,20 @@ document.addEventListener('DOMContentLoaded', () => {
       state.total = 0;
       state.lastPageCount = 0;
       renderEmpty('Клиент не найден');
+      return;
+    }
+
+    if (res.status === 400) {
+      let message = 'Ошибка: бонусы недоступны';
+      try {
+        const errData = await res.json();
+        if (errData && typeof errData.detail === 'string') {
+          message = errData.detail;
+        }
+      } catch (e) {
+        console.error('Failed to parse 400 body', e);
+      }
+      openInfoModal(message);
       return;
     }
 

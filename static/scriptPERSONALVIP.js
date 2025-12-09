@@ -292,7 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const dd   = String(d.getDate()).padStart(2, '0');
     const mm   = String(d.getMonth() + 1).padStart(2, '0');
     const yyyy = d.getFullYear();
-    return `${dd}.${mm}.${yyyy}`;
+    const hh   = String(d.getHours()).padStart(2, '0');
+    const min  = String(d.getMinutes()).padStart(2, '0');
+
+    return `${dd}.${mm}.${yyyy} ${hh}:${min}`;
   }
 
   function fmtRange(startIso, endIso) {
@@ -337,52 +340,105 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="ga-modal-close" title="Закрыть">×</button>
         <div class="ga-modal-content"></div>
         <div class="ga-modal-copy-block">
-          <button class="ga-modal-copy-vip hidden">Скопировать</button>
+          <button type="button" class="ga-modal-ok-vip hidden">Ок</button>
+          <button type="button" class="ga-modal-copy-vip hidden">Скопировать</button>
         </div>
       </div>
     `;
     document.body.appendChild(wrap);
 
-    // закрытие по клику снаружи или по крестику
+    const closeBtn = wrap.querySelector('.ga-modal-close');
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        closeModal();
+      });
+    }
+
+    // клик по фону — закрыть
     wrap.addEventListener('click', (e) => {
-      if (
-        e.target.classList.contains('ga-modal-overlay') ||
-        e.target.classList.contains('ga-modal-close')
-      ) {
+      if (e.target === wrap) {
         closeModal();
       }
     });
 
-    const copyBtn = wrap.querySelector('.ga-modal-copy-vip');
-    copyBtn.addEventListener('click', async () => {
-      const contentEl = wrap.querySelector('.ga-modal-content');
-      const text = contentEl?.innerText || '';
-      if (!text) return;
-
-      try {
-        await navigator.clipboard.writeText(text);
-        const old = copyBtn.textContent;
-        copyBtn.textContent = 'Скопировано!';
-        setTimeout(() => (copyBtn.textContent = old), 900);
-      } catch {
-        alert('Не удалось скопировать :(');
+    // ESC — закрыть
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
       }
     });
 
+    const okBtn   = wrap.querySelector('.ga-modal-ok-vip');
+    const copyBtn = wrap.querySelector('.ga-modal-copy-vip');
+
+    if (okBtn) {
+      okBtn.addEventListener('click', () => {
+        closeModal();
+      });
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        const contentEl = wrap.querySelector('.ga-modal-content');
+        const text = contentEl?.innerText || '';
+        if (!text) return;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          const old = copyBtn.textContent;
+          copyBtn.textContent = 'Скопировано!';
+          setTimeout(() => (copyBtn.textContent = old), 900);
+        } catch {
+          alert('Не удалось скопировать :(');
+        }
+      });
+    }
+
     return wrap;
   }
+
 
   function openAnswerModal(text) {
     const wrap = ensureModal();
     const contentEl = wrap.querySelector('.ga-modal-content');
     const copyBtn   = wrap.querySelector('.ga-modal-copy-vip');
+    const okBtn     = wrap.querySelector('.ga-modal-ok-vip');
 
     contentEl.textContent = text || 'Нет текста для ответа';
-    copyBtn.classList.toggle('hidden', !text);
+
+    // Для ответов показываем "Скопировать" и прячем "Ок"
+    if (copyBtn) copyBtn.classList.toggle('hidden', !text);
+    if (okBtn)   okBtn.classList.add('hidden');
 
     wrap.classList.remove('hidden');
     document.body.classList.add('ga-modal-lock');
   }
+
+  function openInfoModal(text) {
+    const wrap = ensureModal();
+    const contentEl = wrap.querySelector('.ga-modal-content');
+    const copyBtn   = wrap.querySelector('.ga-modal-copy-vip');
+    const okBtn     = wrap.querySelector('.ga-modal-ok-vip');
+
+    // Особые тексты — оборачиваем в див для красивого оформления
+    if (
+      text === 'Клиент относится к VIP-сегменту. Просмотр его ....' ||
+      text === 'Клиент имеет ограничения, бонусы недоступны'
+    ) {
+      contentEl.innerHTML = `<div class="personal-error-msg">${text}</div>`;
+    } else {
+      contentEl.textContent = text || 'Ошибка';
+    }
+
+    // Для инфо-сообщений прячем "Скопировать" и показываем "Ок"
+    if (copyBtn) copyBtn.classList.add('hidden');
+    if (okBtn)   okBtn.classList.remove('hidden');
+
+    wrap.classList.remove('hidden');
+    document.body.classList.add('ga-modal-lock');
+  }
+
 
   function closeModal() {
     const wrap = document.querySelector('.ga-modal-overlay');
@@ -422,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ${rangeText}
       </div>
       <div class="personal-actions-table-cell-rules">
-        ${formatTurnover(a.turnover_remaining)}
+        ${formatTurnover(a.turnover_remaining)} ₽
       </div>
       <div class="personal-actions-table-cell-status">
         ${statusText == "• Активна" ? '<button class="general-action-status" id="general-action-status-active">• Активна</button>' : statusText == "• Завершена" ?  '<button class="general-action-status" id="general-action-status-ended">• Завершена</button>' : statusText == "• Доступна" ? '<button class="general-action-status" id="general-action-status-unavailable">• Доступна</button>': statusText}
@@ -450,6 +506,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (arrowLeftEl)  arrowLeftEl.disabled  = true;
     if (arrowRightEl) arrowRightEl.disabled = true;
   }
+
+  function renderLoading() {
+    tableEl.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'personal-actions-table-row';
+    row.innerHTML = `
+      <div class="personal-actions-table-cell-name" style="grid-column: 1 / -1; opacity:.7">
+        Загрузка...
+      </div>
+    `;
+    tableEl.appendChild(row);
+
+    // В правом верхнем углу вместо "1-10 из N" будет просто "Загрузка..."
+    if (topbarCountEl) {
+      topbarCountEl.textContent = 'Загрузка...';
+    }
+
+    // На время загрузки блокируем стрелки
+    if (arrowLeftEl)  arrowLeftEl.disabled  = true;
+    if (arrowRightEl) arrowRightEl.disabled = true;
+  }
+
 
   function render(actions) {
     tableEl.innerHTML = '';
@@ -488,6 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const base = `/api/v1/personal_actions/${encodeURIComponent(state.clientId)}`;
     const url  = `${base}?offset=${state.offset}&limit=${state.limit}`;
 
+    renderLoading();
+
     let res;
     try {
       res = await fetch(url, { credentials: 'include' });
@@ -498,9 +578,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (res.status === 404) {
+      let message = 'Клиент не найден';
+      try {
+        const errData = await res.json();
+        if (errData && typeof errData.detail === 'string') {
+          message = errData.detail;
+        }
+      } catch (e) {
+        console.error('Failed to parse 404 body', e);
+      }
+
       state.total = 0;
       state.lastPageCount = 0;
-      renderEmpty('Клиент не найден');
+      openInfoModal(message);
+      return;
+    }
+
+    if (res.status === 400) {
+      let message = 'Ошибка: бонусы недоступны';
+      try {
+        const errData = await res.json();
+        if (errData && typeof errData.detail === 'string') {
+          message = errData.detail;
+        }
+      } catch (e) {
+        console.error('Failed to parse 400 body', e);
+      }
+      openInfoModal(message);
       return;
     }
 
@@ -509,6 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderEmpty('Ошибка загрузки данных');
       return;
     }
+
 
     const data = await res.json();
     const actions = Array.isArray(data.actions) ? data.actions : [];

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 import logging
-
+from zoneinfo import ZoneInfo
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.actions_flow_repo import ActionsFlowRepository
@@ -100,7 +100,7 @@ class PersonalActionsService:
         # Проверяем, что клиент существует и не имеет негативных статусов
         await self._ensure_client_allowed(client_id, allow_vip_clients=allow_vip_clients)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(ZoneInfo("Europe/Moscow"))
         finished_cutoff = now - timedelta(days=self.days_after_finish)
 
         # Берём все акции из BackOffice
@@ -397,7 +397,7 @@ class PersonalActionsService:
         if value is None:
             return None
         try:
-            return datetime.fromtimestamp(value / 1000, tz=timezone.utc)
+            return datetime.fromtimestamp(value / 1000, tz=ZoneInfo("Europe/Moscow"))
         except (OSError, OverflowError, TypeError, ValueError):
             return None
 
