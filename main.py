@@ -137,6 +137,10 @@ def create_app():
     async def vip_home(request: Request, user: dict = Depends(require_role("vip"))):
         return app.state.templates.TemplateResponse("vip_home.html", {"request": request, "role": user.get("role")})
     
+    #@app.get("/vip_home_nw", response_class=HTMLResponse)
+    #async def vip_home_nw(request: Request, user: dict = Depends(require_role("vip"))):
+    #    return app.state.templates.TemplateResponse("vip_home_nw.html", {"request": request, "role": user.get("role")})
+    
     @app.get("/vip_personal", response_class=HTMLResponse)
     async def vip_personal(request: Request, user: dict = Depends(require_role("vip"))):
         return app.state.templates.TemplateResponse("vip_personal.html", {"request": request, "role": user.get("role")})

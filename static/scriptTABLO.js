@@ -94,8 +94,8 @@ function renderMacro(index = macroIndex) {
 
   if (lastApiResponse) {
     const name = lastApiResponse.client_first_name;
-    const isEmailProvided  = !!lastApiResponse.is_email_provided;  // true/false
-    const isEmailConfirmed = !!lastApiResponse.is_email_confimed;  // ОБРАТИ ВНИМАНИЕ: confimed как в JSON
+    const isEmailProvided  = !!lastApiResponse.email_provided;  // true/false
+    const isEmailConfirmed = !!lastApiResponse.email_confimed;  // ОБРАТИ ВНИМАНИЕ: confimed как в JSON
 
     // 1) Имя: "Имя, " перед текстом макроса
     if (name) {
