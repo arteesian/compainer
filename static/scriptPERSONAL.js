@@ -392,6 +392,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openAnswerModal(text) {
     const wrap = ensureModal();
+
+    // ВКЛЮЧАЕМ режим сохранения переносов для модалки с ответом
+    wrap.classList.add('ga-modal--preserve');
+
     const contentEl = wrap.querySelector('.ga-modal-content');
     const copyBtn   = wrap.querySelector('.ga-modal-copy');
     const okBtn     = wrap.querySelector('.ga-modal-ok');
@@ -408,6 +412,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openInfoModal(text) {
     const wrap = ensureModal();
+
+    // ВЫКЛЮЧАЕМ режим сохранения переносов для инфо-модалки
+    wrap.classList.remove('ga-modal--preserve');
+
     const contentEl = wrap.querySelector('.ga-modal-content');
     const copyBtn   = wrap.querySelector('.ga-modal-copy');
     const okBtn     = wrap.querySelector('.ga-modal-ok');
@@ -450,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
       : `<span class="personal-action-link">${escapeHtml(a.name ?? '')}</span>`;
 
     const answerButtonHtml = answerText
-      ? `<button class="personal-action-answer" title="Ответ клиенту" data-answer="${escapeHtml(answerText)}">
+      ? `<button class="personal-action-answer" title="Ответ клиенту" data-answer="${escapeHtml(answerText) + (nameHtml.toLowerCase().includes('welcome') ? ` ${escapeHtml(a.link ?? '')}` : ``)}">
            <img src="/static/img/macros_img.png" alt="answer">
          </button>`
       : '';
