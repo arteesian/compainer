@@ -4,6 +4,15 @@ from typing import Any, Optional, Tuple
 
 
 # ========================== client_information ==========================
+def has_ident_needed(client_information: dict[str, Any]) -> bool:
+    for bo_class in client_information["response"]["list"]:
+        if bo_class["class"] == "Fon.Client.Extension":
+            obj = bo_class["object"]
+
+            if obj.get("extIdentNeeded"):
+                return True
+
+    return False
 
 def has_bad_statuses(client_information: dict[str, Any]) -> bool:
     """
@@ -25,10 +34,6 @@ def has_bad_statuses(client_information: dict[str, Any]) -> bool:
 
             # клиент на выход
             if obj.get("getOutClient"):
-                return True
-
-            # требуется идентификация СБ
-            if obj.get("extIdentNeeded"):
                 return True
 
             # manualRestrictions

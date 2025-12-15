@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.actions_flow_repo import ActionsFlowRepository
 from database.models import PersonalPromo
 from service.api_client_service import SecureAPIClient, logger
-from service.backoffice_utils import has_bad_statuses, has_score_and_bh_status, is_vip
+from service.backoffice_utils import has_bad_statuses, has_score_and_bh_status, is_vip, has_ident_needed
 from service.exceptions import ExternalAPIError, UserNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -240,7 +240,13 @@ class PersonalActionsService:
                 status_code=400,
             )
 
-        if has_bad_statuses(client_info):
+        if has_ident_needed(client_info):
+            # при П1 отправляем на 2 линию
+            raise ExternalAPIError(
+                message="Требуется идентификация СБ, переведите клиента на 2-ю линию",
+                status_code=400,
+            )
+        elif has_bad_statuses(client_info):
             # при негативных статусах клиенту недоступны бонусы/акции
             raise ExternalAPIError(
                 message="Клиент имеет ограничения, бонусы недоступны",

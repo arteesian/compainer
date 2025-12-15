@@ -7,6 +7,7 @@ import httpx
 
 from service.backoffice_utils import (
     has_bad_statuses,
+    has_ident_needed,
     is_vip,
     get_client_name,
     is_email_provided,
@@ -260,6 +261,19 @@ class SorryBonusService:
         email_provided = is_email_provided(client_information)
         email_confirmed = is_email_confirmed(client_information)
         client_rate = await SorryBonusService.get_client_rate(int(client_id))
+
+        if has_ident_needed(client_information):
+            return {"client_id" : client_id,
+                    "client_first_name": client_first_name,
+                    "email_provided": email_provided,
+                    "email_confimed": email_confirmed,
+                    "client_rate": client_rate,
+                    "bad_state": True,
+                    "data":
+                        {"have_bonus": False,
+                        "reason": "требуется идентификация СБ"
+                        }
+                    }
 
         if has_bad_statuses(client_information):
             return {"client_id" : client_id,
