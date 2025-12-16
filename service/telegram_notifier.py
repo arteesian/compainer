@@ -12,20 +12,20 @@ chat_id = settings.TELEGRAM_COMMON_ACTIONS_CHAT_ID
 topic_common_questions = settings.TELEGRAM_COMMON_ACTIONS_TOPIC_ID
 topic_faq = settings.TELEGRAM_FAQ_TOPIC_ID
 
-async def _send_telegram_message(text: str, parse_mode: str = "HTML", topic_id: int | None = None) -> None:
+async def _send_telegram_message(text: str, parse_mode: str = "HTML", topic_id: int | None = None, override_chat_id: int | None = None) -> None:
     """
         Базовая отправка сообщения в Telegram.
         Ничего не возвращает и не роняет приложение при ошибке.
     """
 
-    if not token or not chat_id:
+    if not token or (not chat_id and not override_chat_id):
         logger.warning("Telegram is not configured, skip sending message")
         return
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
 
     payload: dict = {
-        "chat_id": chat_id,
+        "chat_id": override_chat_id or chat_id,
         "text": text,
         "parse_mode": parse_mode,
         "disable_web_page_preview": True,
@@ -114,3 +114,22 @@ async def notify_qa_question_created(qa: QuestionAnswer) -> None:
 
     text = "\n".join(lines)
     await _send_telegram_message(text, topic_id=topic_faq)
+
+async def notify_sorry_bonus_offer(client_id: str) -> None:
+    """
+        Формирует сообщение о новом выданном sorry-бонусе и отправляет его в Telegram.
+    """
+    target_chat_id = -1002291174054
+    target_thread_id = 7
+
+    text = (
+        f"🎁 <b>Sorry bonus: выдано предложение</b>\n"
+        f"ID клиента: <b>{client_id}</b>\n"
+        f"Сегмент: <b>64353</b>"
+    )
+
+    await _send_telegram_message(
+        text,
+        topic_id=target_thread_id,
+        override_chat_id=target_chat_id,
+    )

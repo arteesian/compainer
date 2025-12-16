@@ -285,5 +285,33 @@ class SecureAPIClient:
             base_payload=base_payload,
         )
 
+    async def get_client_segment_entries(self, client_id: str) -> Dict[str, Any]:
+        base_payload = {
+            "clientIdList": [str(client_id)],
+            "login": "csat",
+            "userId": "9776",
+            "userLang": "ru",
+        }
+        return await self._make_request_with_token(
+            endpoint="/api/segment/getClientSegmentEntries",
+            method="post",
+            base_payload=base_payload,
+        )
+
+    async def add_clients_to_segment(self, client_id: str) -> Dict[str, Any]:
+        base_payload = {
+            "segmentId": "64353",
+            "clientIdList": [str(client_id)],
+            "login": "csat",
+            "userId": "9776",
+            "userLang": "ru",
+        }
+        logger.info(f"Добавление клиента client_id={client_id} в segment_id=64353")
+        return await self._make_request_with_token(
+            endpoint="/api/segment/addClientsToSegment",
+            method="post",
+            base_payload=base_payload,
+        )
+
 class TokenExpiredError(Exception):
     pass

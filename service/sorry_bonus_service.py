@@ -12,8 +12,10 @@ from service.backoffice_utils import (
     get_client_name,
     is_email_provided,
     is_email_confirmed,
+    is_verified,
+    has_self_exclusion
 )
-
+from service.telegram_notifier import notify_sorry_bonus_offer
 
 from config import settings
 from constants import EUROBONUS_10, EUROBONUS_30, EUROBONUS_50, EUROBONUS_70, EUROBONUS_100
@@ -43,6 +45,7 @@ class SorryBonusService:
 
     @staticmethod
     async def get_bonus_by_business_key(business_key: int):
+        conn = None
         try:
             conn = await asyncpg.connect(
                 user=settings.ORPO_USER,
@@ -61,8 +64,34 @@ class SorryBonusService:
 
             return row["bonus"] if row else None
         except Exception as e:
-            print(f"Orpo db exception: {e}")
-            await conn.close()
+            print(f"Orpo db exception (loyal_refusal_clients): {e}")
+            return False
+        finally:
+            if conn:
+                await conn.close()
+
+    @staticmethod
+    async def exists_in_loyal_refusal_clients(business_key: int) -> bool:
+        conn = None
+        try:
+            conn = await asyncpg.connect(
+                user=settings.ORPO_USER,
+                password=settings.ORPO_PASS,
+                database=settings.ORPO_BD,
+                host=settings.ORPO_HOST,
+                port=settings.ORPO_PORT
+            )
+            row = await conn.fetchrow(
+                "SELECT business_key FROM support_data.loyal_refusal_clients WHERE business_key = $1",
+                business_key
+            )
+            return bool(row)
+        except Exception as e:
+            print(f"Orpo db exception (loyal_refusal_clients): {e}")
+            return False
+        finally:
+            if conn:
+                await conn.close()
 
     @staticmethod
     def check_for_free_bets(free_bet_data: dict[str, Any]) -> bool:
@@ -171,9 +200,12 @@ class SorryBonusService:
 
 
     async def normal_flow_sorry_bonus(self, client_id: str):
-        try:
-            freebets = await self.api_client.get_free_bet_list(client_id)
+        SEGMENT_BLOCK = 4196
 
+        try:
+            client_information = await self.api_client.get_client_information(client_id=client_id)
+            orpo_info = await SorryBonusService.get_bonus_by_business_key(int(client_id))
+            freebets = await self.api_client.get_free_bet_list(client_id)
 
             if SorryBonusService.check_for_free_bets(freebets):
                 return {"client_id": client_id,
@@ -182,25 +214,79 @@ class SorryBonusService:
                         {"have_bonus": False,
                          "reason": "Заявка отклонена, с момента последнего начисленного фрибета прошло менее 2 суток"
                          }}
-            else:
-                orpo_info = await SorryBonusService.get_bonus_by_business_key(int(client_id))
 
-                if not orpo_info or orpo_info < 50:
-                    return {"client_id": client_id,
-                             "bad_state": False,
-                             "data":
-                                 {"have_bonus": False,
-                                  "reason": "Фрибет отсутствует",
-                                  "orpo_bonus": orpo_info
-                                  }}
+            if orpo_info and orpo_info >= 50:
+                return {
+                    "client_id": client_id,
+                    "bad_state": False,
+                    "data": {
+                        "have_bonus": True,
+                        "sum_bn": orpo_info,
+                    },
+                }
 
-                else:
-                    return {"client_id": client_id,
-                            "bad_state": False,
-                            "data":
-                                {"have_bonus": True,
-                                 "sum_bn": orpo_info
-                                 }}
+            exists_in_refusal = await SorryBonusService.exists_in_loyal_refusal_clients(int(client_id))
+            if not exists_in_refusal:
+                return {
+                    "client_id": client_id,
+                    "bad_state": False,
+                    "data": {
+                        "have_bonus": False,
+                        "reason": "Фрибет отсутствует",
+                        "orpo_bonus": orpo_info,
+                    },
+                }
+
+            if not is_verified(client_information):
+                return {
+                    "client_id": client_id,
+                    "bad_state": False,
+                    "data": {"have_bonus": False, "reason": "Клиент не идентифицирован", "orpo_bonus": orpo_info},
+                }
+
+            if has_self_exclusion(client_information):
+                return {
+                    "client_id": client_id,
+                    "bad_state": False,
+                    "data": {"have_bonus": False, "reason": "У клиента действуют самоограничения", "orpo_bonus": orpo_info},
+                }
+
+            seg_resp = await self.api_client.get_client_segment_entries(client_id=client_id)
+
+            seg_list = []
+            resp = seg_resp.get("response") or {}
+            lst = resp.get("list") or []
+            if lst and isinstance(lst, list):
+                first = lst[0] or {}
+                seg_list = first.get("segmentIdList") or []
+
+            seg_set = {int(x) for x in seg_list if str(x).isdigit()}
+
+            if SEGMENT_BLOCK in seg_set:
+                return {
+                    "client_id": client_id,
+                    "bad_state": False,
+                    "data": {
+                        "have_bonus": False,
+                        "reason": "Фрибет отсутствует (соответствие в сегменте)",
+                        "orpo_bonus": orpo_info,
+                    },
+                }
+
+            # Добавляем в сегмент 64353
+            await self.api_client.add_clients_to_segment(client_id=client_id)
+
+            await notify_sorry_bonus_offer(client_id=client_id)
+
+            return {
+                "client_id": client_id,
+                "bad_state": False,
+                "data": {
+                    "have_bonus": True,
+                    "reason": "Доступен фрибет (согласно обновленной схеме)",
+                    "orpo_bonus": orpo_info,
+                },
+            }
 
         except Exception as e:
             return {"data": "error", "details": e}

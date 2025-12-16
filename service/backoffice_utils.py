@@ -140,3 +140,35 @@ def is_email_confirmed(client_information: dict[str, Any]) -> bool:
         if bo_class["class"] == "Fon.Client.Extension":
             return bool(bo_class["object"].get("emailConfirmed"))
     return False
+
+def is_verified(client_information: dict[str, Any]) -> bool:
+    """
+    Проверяем статус идентификации клиента
+    Верифицирован:
+      cupisBindState in {2,3} AND cupisIdentLevel in {2,3}
+    Не верифицирован:
+      cupisBindState in {0,1} OR cupisIdentLevel in {0,1}
+    """
+    bind_state = None
+    ident_level = None
+
+    for bo_class in client_information.get("response", {}).get("list", []):
+        obj = bo_class.get("object") or {}
+        if "cupisBindState" in obj:
+            bind_state = obj.get("cupisBindState")
+        if "cupisIdentLevel" in obj:
+            ident_level = obj.get("cupisIdentLevel")
+
+    return (str(bind_state) in {"2", "3"}) and (str(ident_level) in {"2", "3"})
+
+def has_self_exclusion(client_information: dict[str, Any]) -> bool:
+    """
+    Проверка на самоисключения клиента: поле restrictions содержит код "9010"
+    """
+
+    for bo_class in client_information.get("response", {}).get("list", []):
+        obj = bo_class.get("object") or {}
+        restrictions = obj.get("restrictions") or []
+        if isinstance(restrictions, list) and "9010" in {str(x) for x in restrictions}:
+            return True
+    return False
