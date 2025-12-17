@@ -49,6 +49,14 @@ const SORRY_MACROS = [
   </div>`,
 ];
 
+const sorry_new_macros = `
+на вашем счете активна акция «Фрибет 15% от депозита» 😍<br>
+Для получения фрибета вам потребуется внести депозит на сумму от 300 рублей в течение 4 дней с момента получения акционного предложения.<br>
+После чего вам поступит фрибет, в размере 15% от внесенного депозита, но не более 20 000 рублей.<br>
+Ставьте его на спортивные события с коэффициентом до 3.00 в течение 3 дней на сайте или в мобильном приложении.<br>
+Правила акции указаны по ссылке: https://pari.ru/pages/rej_fb15_av
+`
+
 let lastApiResponse = null;
 
 const text_mail_1 = `
@@ -165,6 +173,7 @@ const fmt = n => (n === null || n === undefined || isNaN(Number(n)))
   : Number(n).toLocaleString('ru-RU');
 
 const API_PATH = '/api/v1/sorry_bonus'; // если у тебя другой путь — просто поправь эту строку
+const NEW_SEGMENT_REASON = 'Доступен фрибет (согласно обновленной схеме)';
 
 function render(data) {
   if (!data) return '<div>Пустой ответ</div>';
@@ -214,11 +223,35 @@ function render(data) {
 
     if (data.sorry_bonus) {
         const sb = data.sorry_bonus;
+        const namePrefix = data?.client_first_name ? `${escapeHtml(data.client_first_name)}, ` : '';
         if (sb.data === 'error') {
             html += `Ошибка: ${escapeHtml(String(sb.details || ''))}<br><br>`;
         } else if (sb.data) {
             if (sb.data.have_bonus) {
-                html += `<div class="client-have-bonus">Доступен фрибет<br>${fmt(sb.data.sum_bn)} ₽</div><br>`;
+                if (sb.data.reason === NEW_SEGMENT_REASON) {
+                  const isEmailProvided  = !!data.email_provided;   // true/false
+                  const isEmailConfirmed = !!data.email_confimed;   // ВАЖНО: именно confimed (как приходит с бэка)
+
+                  let mailPartHtml = '';
+
+                  // если почта указана, но НЕ подтверждена -> text_mail_1
+                  if (isEmailProvided && !isEmailConfirmed) {
+                    if (typeof text_mail_1 !== 'undefined') {
+                      mailPartHtml = `<br><br>${escapeHtml(text_mail_1)}`;
+                    }
+                  }
+                  // если почты нет и она не подтверждена -> text_mail_2
+                  else if (!isEmailProvided && !isEmailConfirmed) {
+                    if (typeof text_mail_2 !== 'undefined') {
+                      mailPartHtml = `<br><br>${escapeHtml(text_mail_2)}`;
+                    }
+                  }
+
+                  // имя уже в namePrefix, макрос + доп.текст про почту дописываем в конец
+                  html += `<div>${namePrefix}${sorry_new_macros.trim()}${mailPartHtml}</div><br>`;
+                } else {
+                  html += `<div class="client-have-bonus">Доступен фрибет<br>${fmt(sb.data.sum_bn)} ₽</div><br>`;
+                }
                 html += `<br>`;
             } else {
                 html += `
@@ -305,7 +338,8 @@ async function sendRequest() {
     showAnswerButtons(showMacros);
 
     // --- кнопка действия: "Начислить" если есть фрибет, иначе "Скопировать"
-    const hasFreebet = !!(sbData && sbData.have_bonus === true);
+    const isNewSegment = !!(sbData && sbData.reason === NEW_SEGMENT_REASON);
+    const hasFreebet = !!(sbData && sbData.have_bonus === true && !isNewSegment);
     if (copyBtn) {
       copyBtn.classList.remove('hidden');
       // сброс возможного старого обработчика
