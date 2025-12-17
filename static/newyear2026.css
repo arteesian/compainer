@@ -1,0 +1,207 @@
+
+.lightrope {
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  position: absolute;
+  z-index: 2;
+  margin: -15px 0 0 0;
+  padding: 0;
+  pointer-events: none;
+  width: 100%;
+}
+
+.lightrope li {
+  position: relative;
+  animation-fill-mode: both;
+  animation-iteration-count: infinite;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: block;
+  width: 12px;              /* $globe-width */
+  height: 28px;             /* $globe-height */
+  border-radius: 50%;
+  margin: 20px;             /* $globe-spacing/2 = 40/2 */
+  display: inline-block;
+  background: rgba(14, 161, 29, 1); /* зелёный */
+  box-shadow: 0px 4.66667px 24px 3px rgba(14, 161, 29, 1);
+  animation-name: flash-1;
+  animation-duration: 2s;
+}
+
+.lightrope li:nth-child(2n+1) {
+  background: rgba(255, 255, 255, 1); /* белый */
+  box-shadow: 0px 4.66667px 24px 3px rgba(255, 255, 255, 0.9);
+  animation-name: flash-2;
+}
+
+.lightrope li:nth-child(4n+2) {
+  background: rgba(255, 0, 0, 1); /* красный */
+  box-shadow: 0px 4.66667px 24px 3px rgba(255, 0, 0, 1);
+  animation-name: flash-3;
+}
+
+.lightrope li:nth-child(odd) {
+  animation-duration: 1.8s;
+}
+
+.lightrope li:nth-child(3n+1) {
+  animation-duration: 1.4s;
+}
+
+.lightrope li::before {
+  content: "";
+  position: absolute;
+  background: #222;
+  width: 10px;              /* $globe-width - 2 */
+  height: 9.33333px;        /* $globe-height/3 */
+  border-radius: 3px;
+  top: -4.66667px;          /* -( $globe-height/6 ) */
+  left: 1px;
+}
+
+.lightrope li::after {
+  content: "";
+  top: -14px;               /* -( $globe-height/2 ) */
+  left: 9px;                /* $globe-width - 3 = 12 - 3 */
+  position: absolute;
+  width: 52px;              /* $globe-spacing + 12 = 40 + 12 */
+  height: 18.66667px;       /* $globe-height/3 * 2 */
+  border-bottom: solid #222 2px;
+  border-radius: 50%;
+}
+
+.lightrope li:last-child::after {
+  content: none;
+}
+
+.lightrope li:first-child {
+  margin-left: -40px;       /* -$globe-spacing */
+}
+
+@keyframes flash-1 {
+  /* ЗЕЛЁНЫЙ */
+  0%, 100% {
+    background: rgba(14, 161, 29, 1);
+    box-shadow: 0px 4.66667px 24px 3px rgba(14, 161, 29, 1);
+  }
+  50% {
+    background: rgba(14, 161, 29, 0.4);
+    box-shadow: 0px 4.66667px 24px 3px rgba(14, 161, 29, 0.2);
+  }
+}
+
+@keyframes flash-2 {
+  /* БЕЛЫЙ */
+  0%, 100% {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0px 4.66667px 24px 3px rgba(255, 255, 255, 1);
+  }
+  50% {
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: 0px 4.66667px 24px 3px rgba(255, 255, 255, 0.2);
+  }
+}
+
+@keyframes flash-3 {
+  /* КРАСНЫЙ */
+  0%, 100% {
+    background: rgba(255, 0, 0, 1);
+    box-shadow: 0px 4.66667px 24px 3px rgba(255, 0, 0, 1);
+  }
+  50% {
+    background: rgba(255, 0, 0, 0.4);
+    box-shadow: 0px 4.66667px 24px 3px rgba(255, 0, 0, 0.2);
+  }
+}
+
+/*_____________________________________SNOW______________________________*/
+html, body {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;                            /* чтобы снег, уходящий вниз, не добавлял скролл */
+  position: relative;
+}
+
+/* Базовый слой снега */
+.snow,
+.snow::before,
+.snow::after {
+  position: fixed;
+  top: -600px; /* -$w */
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  /* Заранее сгенерированный "паттерн" снега */
+  background-image:
+    radial-gradient(4px 4px at 50px 50px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 120px 80px, rgba(255,255,255,0.7) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(5px 5px at 200px 40px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 320px 60px, rgba(255,255,255,0.6) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(4px 4px at 420px 110px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 530px 70px, rgba(255,255,255,0.7) 50%, rgba(0,0,0,0) 100%),
+
+    radial-gradient(4px 4px at 80px 170px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 160px 210px, rgba(255,255,255,0.6) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(5px 5px at 260px 180px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 360px 220px, rgba(255,255,255,0.7) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(4px 4px at 460px 190px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 540px 230px, rgba(255,255,255,0.6) 50%, rgba(0,0,0,0) 100%),
+
+    radial-gradient(4px 4px at 40px 300px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 140px 340px, rgba(255,255,255,0.7) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(5px 5px at 240px 310px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 340px 350px, rgba(255,255,255,0.6) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(4px 4px at 440px 320px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 540px 360px, rgba(255,255,255,0.7) 50%, rgba(0,0,0,0) 100%),
+
+    radial-gradient(4px 4px at 70px 430px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 170px 470px, rgba(255,255,255,0.6) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(5px 5px at 270px 440px, rgba(255,255,255,0.9) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 370px 480px, rgba(255,255,255,0.7) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(4px 4px at 470px 450px, rgba(255,255,255,0.8) 50%, rgba(0,0,0,0) 100%),
+    radial-gradient(3px 3px at 560px 490px, rgba(255,255,255,0.6) 50%, rgba(0,0,0,0) 100%);
+
+  background-size: 600px 600px; /* $w $w */
+
+  animation: snow 3s linear infinite; /* $s */
+  content: "";
+
+  pointer-events: none;  /* важно: не блокирует клики по кнопкам и т.п. */
+  z-index: 0;            /* слой снега */
+}
+
+/* задний слой (самый медленный и размазанный) */
+.snow::before {
+  animation-duration: 9s;           /* $s * 3 */
+  animation-direction: reverse;
+  margin-left: -300px;              /* -$w/2 */
+  opacity: 0.65;
+  filter: blur(1.5px);
+}
+
+/* средний слой */
+.snow::after {
+  margin-left: -200px;              /* -$w/3 */
+  opacity: 0.4;
+  animation-duration: 6s;           /* $s * 2 */
+  animation-direction: reverse;
+  filter: blur(3px);
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;   /* если хочешь, чтобы снег был "позади" — поставь здесь 0, а .snow сделай z-index: 2 */
+}
+.snow { z-index: 2; } .wrap { z-index: 1; }
+
+/* Анимация падения */
+@keyframes snow {
+  to {
+    transform: translateY(600px);   /* $w */
+  }
+}
