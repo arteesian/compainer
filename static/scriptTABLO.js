@@ -66,6 +66,10 @@ const text_mail_1 = `
 const text_mail_2 = `
 На вашем счете отсутствует адрес электронной почты❕ Внести адрес электронной почты можете во вкладке «Профиль» (нажмите на силуэт человека в верхнем правом углу) или по ссылке: 🔗 https://pari.ru/account/profile/change-email 🙌`;
 
+const ACTION_66288_TEXT = `
+братик
+`;
+
 function ensureMacroHost() {
   // создаём контейнер под слайды, если его ещё нет
   let host = out.querySelector('#macros-slide-denial');
@@ -163,6 +167,80 @@ function normalizeError(details) {
   }
   return String(msg);
 }
+
+async function hasActivePersonalAction66288(clientId) {
+  const url = `/api/v1/personal_actions/${encodeURIComponent(clientId)}?offset=0&limit=10`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Accept': 'application/json' },
+  });
+
+  // Не ломаем текущий сценарий: если ручка недоступна/ошибка — просто считаем, что акции нет
+  if (!res.ok) return false;
+
+  const data = await res.json().catch(() => null);
+  if (!data) return false;
+
+  // ТВОЙ ФОРМАТ: data.actions = [...]
+  const actions = Array.isArray(data.actions) ? data.actions : [];
+
+  return actions.some(a =>
+    Number(a?.action_id) === 66288 &&
+    String(a?.status).toLowerCase() === 'active'
+  );
+}
+
+function showSecondCheckSpinner() {
+  // чтобы не плодить несколько спиннеров
+  const existing = document.getElementById('wait-66288');
+  if (existing) return;
+
+  out.insertAdjacentHTML(
+    'beforeend',
+    '<div id="wait-66288" class="wait-sorry-user"><img src="/static/img/dotsv2.gif"></div>'
+  );
+}
+
+function hideSecondCheckSpinner() {
+  const el = document.getElementById('wait-66288');
+  if (el) el.remove();
+}
+
+
+function renderAction66288Block() {
+  // 1) Основной текст (HTML допускаем, как в sorry_new_macros)
+  const mainHtml = (sorry_new_macros ?? '').trim()
+    ? sorry_new_macros.trim()
+    : 'Акция 66288 активна (заполни sorry_new_macros в scriptTABLO.js).';
+
+  // 2) Имя клиента в начале
+  const name = lastApiResponse?.client_first_name;
+  const namePrefix = name ? `${escapeHtml(name)}, ` : '';
+
+  // 3) Хвост по привязке/подтверждению почты (если нужно)
+  const isEmailProvided  = !!lastApiResponse?.email_provided;   // true/false
+  const isEmailConfirmed = !!lastApiResponse?.email_confimed;   // как у тебя в JSON: confimed
+
+  let mailPartHtml = '';
+  if (isEmailProvided && !isEmailConfirmed) {
+    mailPartHtml = `<br><br>${escapeHtml(text_mail_1)}`;
+  } else if (!isEmailProvided && !isEmailConfirmed) {
+    mailPartHtml = `<br><br>${escapeHtml(text_mail_2)}`;
+  }
+
+  // 4) Собираем итог
+  return `
+    <div class="client-dont-have-bonus">
+      <div id="action-66288-block" class="macro">
+        ${namePrefix}${mainHtml}${mailPartHtml}
+      </div>
+    </div>
+  `;
+}
+
+
 
 // ---------- helpers ----------
 const escapeHtml = s => String(s ?? '')
@@ -336,6 +414,45 @@ async function sendRequest() {
     const noSorryBonus = !!(sbData && sbData.have_bonus === false);
     const isVIP = (String(data?.client_type || '').toLowerCase() === 'vip') || (data?.is_vip === true);
     const showMacros = noSorryBonus && !isVIP;
+
+    let has66288 = false;
+    if (showMacros) {
+      // Проверяем ТОЛЬКО в сценарии, когда сейчас должны показываться SORRY_MACROS
+      // (то есть sorry_bonus нет и клиент не VIP)
+      showSecondCheckSpinner();
+      try {
+        has66288 = await hasActivePersonalAction66288(id);
+      } finally {
+        hideSecondCheckSpinner();
+      }
+
+      if (has66288) {
+        // Если нашли акцию — показываем специальный текст + кнопку "Скопировать",
+        // а стрелки макросов (карусель) не показываем
+        showAnswerButtons(false);
+        out.innerHTML = renderAction66288Block();
+
+        if (copyBtn) {
+          copyBtn.classList.remove('hidden');
+          copyBtn.textContent = 'Скопировать';
+          copyBtn.onclick = async () => {
+            const el = out.querySelector('#action-66288-block');
+            const textToCopy = el ? el.innerText.trim() : out.innerText.trim();
+            try {
+              await navigator.clipboard.writeText(textToCopy);
+              copyBtn.textContent = 'Скопировано';
+              setTimeout(() => copyBtn.textContent = 'Скопировать', 1200);
+            } catch {
+              copyBtn.textContent = 'Нет доступа к буферу';
+              setTimeout(() => copyBtn.textContent = 'Скопировать', 1200);
+            }
+          };
+        }
+
+        // ВАЖНО: дальше не идём, иначе ниже код снова включит макросы и перезатрёт вывод
+        return;
+      }
+    }
 
     showAnswerButtons(showMacros);
 
