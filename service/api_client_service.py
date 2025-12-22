@@ -257,7 +257,7 @@ class SecureAPIClient:
 
         logger.info(f"Получение акций по клиенту с user_id={client_id}")
         return await self._make_request_with_token(
-            endpoint="/api/loyalty/getClientLoyaltyParticipationHistory",
+            endpoint="/api/loyalty/pb/getClientLoyaltyParticipationHistory",
             method="post",
             base_payload=base_payload
         )
@@ -280,7 +280,7 @@ class SecureAPIClient:
         )
 
         return await self._make_request_with_token(
-            endpoint="/api/loyalty/getActionClientsProgresses",
+            endpoint="/api/loyalty/pb/getActionClientsProgresses",
             method="post",
             base_payload=base_payload,
         )
