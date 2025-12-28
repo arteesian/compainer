@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from starlette import status
 from starlette.responses import JSONResponse
 
@@ -9,6 +9,10 @@ from service.auth import require_role, get_current_user
 from service.exceptions import ExternalAPIError
 from service.sorry_bonus_service import SorryBonusService
 from service.user_service import UserService
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from database.dependencies import get_db_session
+from database.action_logs_repo import ActionLogsRepository
 
 
 sorry_bonus_router = APIRouter(prefix="/api/v1", tags=["акции,персональное"])
@@ -23,6 +27,8 @@ sorry_bonus_router = APIRouter(prefix="/api/v1", tags=["акции,персон�
 )
 async def get_combined_user_data(
         request: ClientIdSchema,
+        response: Response,
+        session: AsyncSession = Depends(get_db_session),
         user: dict = Depends(get_current_user)
 ):
     try:
@@ -33,18 +39,47 @@ async def get_combined_user_data(
         )
 
         sorry_bonus = SorryBonusService(api_client)
+        result = await sorry_bonus.get_combined_response_euro_bonus(request.client_id)
 
-        return await sorry_bonus.get_combined_response_euro_bonus(request.client_id)
+        row = await ActionLogsRepository.create(
+            session,
+            employee_email=user.get("email"),
+            employee_name=None,
+            client_id=request.client_id,
+            request_type="sorry_bonus",
+            http_status=200,
+            backend_payload=result if isinstance(result, dict) else getattr(result, "model_dump", lambda: result)(),
+        )
+        response.headers["X-Action-Log-Id"] = str(row.id)
+
+        return result
 
     except ExternalAPIError as e:
         # Ошибки бэкоффиса (включая проблемы с фсидом после всех retry)
-        raise HTTPException(
-            status_code=e.status_code or status.HTTP_502_BAD_GATEWAY,
-            detail=f"External API error: {e.message}"
+        st = e.status_code or status.HTTP_502_BAD_GATEWAY
+        await ActionLogsRepository.create(
+            session,
+            employee_email=user.get("email"),
+            employee_name=None,
+            client_id=request.client_id,
+            request_type="sorry_bonus",
+            http_status=st,
+            backend_payload={"detail": f"External API error: {e.message}"},
+            error_text=e.message,
         )
+        raise HTTPException(status_code=st, detail=f"External API error: {e.message}")
     except Exception as e:
-        # тут логи нада
         logger.error(f"Необработанная ошибка для client_id={request.client_id}: {e}")
+        await ActionLogsRepository.create(
+            session,
+            employee_email=user.get("email"),
+            employee_name=None,
+            client_id=request.client_id,
+            request_type="sorry_bonus",
+            http_status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            backend_payload={"detail": "Internal server error"},
+            error_text=str(e),
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"

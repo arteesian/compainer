@@ -12,7 +12,7 @@ from pathlib import Path
 from config import settings
 from routes.common_actions_routers import common_actions_router
 from routes.auth import auth_router
-from routes.superadmin import superadmin_router
+from routes.superadmin import superadmin_router, superadmin_logs_router
 from routes.user import user_router
 from routes.wager import router as wager_router
 from routes.sorry_bonus import sorry_bonus_router
@@ -187,6 +187,7 @@ def create_app():
     app.include_router(user_router)
     app.include_router(auth_router)
     app.include_router(superadmin_router)
+    app.include_router(superadmin_logs_router)
     app.include_router(personal_actions_router)
     app.include_router(sorry_bonus_router)
     app.include_router(common_actions_router)

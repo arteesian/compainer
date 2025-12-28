@@ -8,8 +8,53 @@ from service.user_service import UserService
 import io
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database.dependencies import get_db_session
+from database.action_logs_repo import ActionLogsRepository
 
 superadmin_router = APIRouter(prefix="/api/v1/superadmin/users", tags=["superadmin layer"])
+superadmin_logs_router = APIRouter(prefix="/api/v1/superadmin/action-logs", tags=["superadmin layer"])
+
+class ActionLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    created_at: datetime
+    employee_email: str
+    employee_name: str | None
+    client_id: str
+    request_type: str
+    http_status: int
+    backend_payload: dict | None
+    error_text: str | None
+    final_text: str | None
+
+@superadmin_logs_router.get("/", response_model=list[ActionLogResponse])
+async def get_action_logs(
+    limit: int = 50,
+    offset: int = 0,
+    request_type: str | None = None,
+    employee_email: str | None = None,
+    client_id: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    session: AsyncSession = Depends(get_db_session),
+    superadmin: dict = Depends(require_role("superadmin")),
+):
+    rows = await ActionLogsRepository.list(
+        session,
+        limit=limit,
+        offset=offset,
+        request_type=request_type,
+        employee_email=employee_email,
+        client_id=client_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    return rows
+
 
 
 @superadmin_router.get("/", response_model=list[UserResponse])

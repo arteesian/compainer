@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from service.auth import require_role, get_current_user
-from database.dependencies import get_actions_flow_session
+from database.dependencies import get_actions_flow_session, get_db_session
 from database.actions_flow_repo import ActionsFlowRepository
 from service.api_client_service import SecureAPIClient
 from service.personal_actions_service import (
@@ -17,6 +17,7 @@ from routes.personal_actions_schemas import (
     PersonalActionsResponse,
     PersonalActionStatusEnum,
 )
+from database.action_logs_repo import ActionLogsRepository
 from config import settings
 
 personal_actions_router = APIRouter(
@@ -44,9 +45,11 @@ def get_personal_actions_service_dep(
 )
 async def get_personal_actions_endpoint(
     client_id: int,
+    response: Response,
     offset: int = 0,
     limit: int = 10,
     service: PersonalActionsService = Depends(get_personal_actions_service_dep),
+    log_session: AsyncSession = Depends(get_db_session),
     user: dict = Depends(get_current_user),
 ):
     # Определяем, можно ли этому пользователю смотреть VIP-клиенто
@@ -68,10 +71,44 @@ async def get_personal_actions_endpoint(
             allow_vip_clients=allow_vip_clients,
         )
     except UserNotFoundError as exc:
+        await ActionLogsRepository.create(
+            log_session,
+            employee_email=user.get("email"),
+            employee_name=None,
+            client_id=str(client_id),
+            request_type="personal_actions",
+            http_status=404,
+            backend_payload={"detail": str(exc)},
+            error_text=str(exc),
+        )
         raise HTTPException(status_code=404, detail=str(exc))
     except ExternalAPIError as exc:
         status = getattr(exc, "status_code", None) or 502
-        raise HTTPException(status_code=status, detail=exc.message or "External API error")
+        detail = exc.message or "External API error"
+
+        await ActionLogsRepository.create(
+            log_session,
+            employee_email=user.get("email"),
+            employee_name=None,
+            client_id=str(client_id),
+            request_type="personal_actions",
+            http_status=status,
+            backend_payload={"detail": detail},
+            error_text=detail,
+        )
+        raise HTTPException(status_code=status, detail=detail)
+    except Exception as exc:
+        await ActionLogsRepository.create(
+            log_session,
+            employee_email=user.get("email"),
+            employee_name=None,
+            client_id=str(client_id),
+            request_type="personal_actions",
+            http_status=500,
+            backend_payload={"detail": "Internal server error"},
+            error_text=str(exc),
+        )
+        raise HTTPException(status_code=500, detail="Internal server error")
 
     actions_out = [
         PersonalActionOut(
@@ -88,13 +125,26 @@ async def get_personal_actions_endpoint(
         for a in page.items
     ]
 
-    return PersonalActionsResponse(
+    out = PersonalActionsResponse(
         client_id=client_id,
         total=page.total,
         offset=page.offset,
         limit=limit,
         actions=actions_out,
     )
+
+    row = await ActionLogsRepository.create(
+        log_session,
+        employee_email=user.get("email"),
+        employee_name=None,
+        client_id=str(client_id),
+        request_type="personal_actions",
+        http_status=200,
+        backend_payload=out.model_dump(),
+    )
+    response.headers["X-Action-Log-Id"] = str(row.id)
+
+    return out
 
 
 def _map_status_to_enum(status: PersonalActionStatus) -> PersonalActionStatusEnum:

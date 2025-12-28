@@ -5,6 +5,7 @@ from typing import Optional, List
 from sqlalchemy import DateTime, BigInteger, String, Column, Integer, ForeignKey, Enum as SQLEnum, func, Text
 from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import Boolean
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class Base(DeclarativeBase):
@@ -295,3 +296,20 @@ class WelcomeStep5(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
     )
+
+class ActionLog(Base):
+    """
+    Таблица записей журнала действий пользователей (логи)
+    """
+    __tablename__ = "action_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    employee_email: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    employee_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    client_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    request_type: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    http_status: Mapped[int] = mapped_column(Integer, nullable=False, default=200)
+    backend_payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # сырой ответ бекенда
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    final_text: Mapped[str | None] = mapped_column(Text, nullable=True)
